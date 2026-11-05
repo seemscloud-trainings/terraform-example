@@ -297,3 +297,15 @@ bierze CIDR wybranych subnetów przez dependency.subnetwork, bez powtarzania lit
 Pełna VPC jest dołączona jako spoke, ale eksportowane są tylko dopasowane zakresy.
 Po wdrożeniu sprawdź ACTIVE hub/spokes, trasy NCC oraz ruch prywatny między VM;
 zweryfikuj również brak eksportu subnetów pominiętych przez filtr.
+
+## VPC Network Peering
+
+Moduł network-peering tworzy jedną stronę połączenia, google_compute_network_peering.this.
+Wejście peering i output peering są pojedynczymi obiektami. Dla dwóch VPC potrzebne
+są dwie jednostki global/networking/peering/<nazwa>/, każda z zależnościami do obu
+sieci i ich self_link. Jednostki peeringu nie zależą wzajemnie od siebie.
+Prywatne trasy subnetów są wymieniane automatycznie. Import/export custom routes
+nie filtruje prywatnych subnetów. Nie dodawaj fikcyjnego include_export_ranges.
+Dostęp do usług ogranicza firewall. Nie łącz jednego scenariusza ćwiczeń z innym
+bez polecenia użytkownika. Sam destroy VM pozostawiający jej kod oznacza, że
+kolejny apply tej jednostki może ją odtworzyć.
