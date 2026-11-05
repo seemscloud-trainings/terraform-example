@@ -22,7 +22,6 @@ env/<środowisko>/
     └── <region>/
         ├── region.hcl
         └── networking/
-            ├── networking.hcl
             ├── network/terragrunt.hcl
             ├── router/terragrunt.hcl
             ├── vpn-gateway/terragrunt.hcl
@@ -37,14 +36,13 @@ jednego peera. Sieć, router i brama są współdzielone przez połączenia regi
 Nowe połączenie nie duplikuje tych zasobów. Nie twórz automatycznie pełnej siatki
 połączeń; wykonuj tylko żądaną topologię.
 
-`networking/networking.hcl` przechowuje dane tylko danego regionu: nazwy VPC,
-subnetu, routera i bramy, CIDR oraz ASN. `connections/to-<peer>/connection.hcl`
-przechowuje dane tylko tego końca połączenia: peer_region, plik PSK i mapę tuneli
-z nazwami, interfejsami i adresacją BGP. Jednostki odczytują te pliki w locals.
-ASN peera pochodzi z jego regionalnego networking.hcl, nie z powielonej wartości.
-Nie twórz centralnego katalogu sites/connections na poziomie projektu ani nie
-przenoś tam danych regionalnych. project.hcl pozostaje kontekstem projektu.
-Nazwy zasobów są jawne; każde nowe połączenie ma własne nazwy i zakresy BGP.
+Parametry zasobu wpisuj bezpośrednio do inputs jednostki, która go tworzy:
+nazwy VPC/subnetu i CIDR do network, nazwę routera i ASN do router, nazwę bramy
+do vpn-gateway. Nie dodawaj zbiorczych plików z tymi wartościami ani pośredniego
+local.site. Wspólne pliki kontekstowe to environment.hcl, project.hcl i region.hcl.
+connection.hcl pozostaje metadanymi konkretnego połączenia używanymi przez jego
+jednostki tunnels i bgp. ASN zdalnego routera pobieraj z rzeczywistego outputu
+jego dependency, nie przez odczyt jego pliku konfiguracyjnego.
 
 To aktualny wzorzec sieciowy, nie nakaz tworzenia tych katalogów dla każdej usługi.
 Nowe jednostki mają odzwierciedlać rzeczywistą odpowiedzialność i własność stanu.

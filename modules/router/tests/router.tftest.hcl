@@ -21,7 +21,7 @@ run "standalone_router" {
     }
   }
   assert {
-    condition     = google_compute_router.this["nat"].name == "nat-router" && length(output.interfaces) == 0 && length(output.peers) == 0
+    condition     = google_compute_router.this["nat"].name == "nat-router" && output.routers["nat"].asn == null && length(output.interfaces) == 0 && length(output.peers) == 0
     error_message = "Router must work without any VPN, interface or BGP peer."
   }
 }
@@ -104,7 +104,7 @@ run "managed_interfaces_and_peers" {
     }
   }
   assert {
-    condition     = google_compute_router_interface.this["primary"].router == google_compute_router.this["core"].name && google_compute_router_peer.this["primary"].interface == google_compute_router_interface.this["primary"].name && output.peers["primary"].project == "host-project" && output.peers["primary"].region == "europe-west4"
+    condition     = google_compute_router_interface.this["primary"].router == google_compute_router.this["core"].name && google_compute_router_peer.this["primary"].interface == google_compute_router_interface.this["primary"].name && output.peers["primary"].project == "host-project" && output.peers["primary"].region == "europe-west4" && output.routers["core"].asn == 65001
     error_message = "Managed references must inherit the correct router, project and region."
   }
   assert {

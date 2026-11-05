@@ -9,6 +9,7 @@ output "routers" {
       project   = v.project
       region    = v.region
       network   = v.network
+      asn       = try(v.bgp[0].asn, null)
     }
   }
 }

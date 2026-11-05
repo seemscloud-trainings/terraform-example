@@ -9,7 +9,6 @@ locals {
   project     = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
   connection  = read_terragrunt_config(find_in_parent_folders("connection.hcl")).locals
-  peer        = read_terragrunt_config("${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/networking.hcl").locals
 }
 
 terraform {
@@ -18,6 +17,10 @@ terraform {
 
 dependency "router" {
   config_path = "../../../router"
+}
+
+dependency "peer_router" {
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/router"
 }
 
 dependency "tunnel" {
@@ -42,7 +45,7 @@ inputs = {
       name            = tunnel.peer_name
       router          = dependency.router.outputs.routers.main.name
       interface_key   = key
-      peer_asn        = local.peer.asn
+      peer_asn        = dependency.peer_router.outputs.routers.main.asn
       peer_ip_address = tunnel.peer_ip_address
       advertise_mode  = "DEFAULT"
     }

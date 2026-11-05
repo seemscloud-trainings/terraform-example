@@ -8,7 +8,6 @@ locals {
   environment = read_terragrunt_config(find_in_parent_folders("environment.hcl"))
   project     = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-  site        = read_terragrunt_config(find_in_parent_folders("networking.hcl")).locals
 }
 
 terraform {
@@ -20,13 +19,13 @@ inputs = {
   project     = local.project.inputs.project
   region      = local.region.inputs.region
   network = {
-    name         = local.site.network_name
+    name         = "vpn-eu-vpc"
     routing_mode = "GLOBAL"
   }
   subnetworks = {
     main = {
-      name          = local.site.subnet_name
-      ip_cidr_range = local.site.cidr
+      name          = "vpn-eu-subnet"
+      ip_cidr_range = "10.80.0.0/24"
     }
   }
 }

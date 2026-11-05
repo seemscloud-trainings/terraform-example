@@ -8,7 +8,6 @@ locals {
   environment = read_terragrunt_config(find_in_parent_folders("environment.hcl"))
   project     = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-  site        = read_terragrunt_config(find_in_parent_folders("networking.hcl")).locals
 }
 
 terraform {
@@ -25,7 +24,7 @@ inputs = {
   region      = local.region.inputs.region
   gateways = {
     main = {
-      name               = local.site.gateway_name
+      name               = "vpn-eu-gateway"
       network            = dependency.network.outputs.network.self_link
       gateway_ip_version = "IPV4"
       stack_type         = "IPV4_ONLY"
