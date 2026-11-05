@@ -370,3 +370,16 @@ mapami bloków; wybierz tylko jedną akcję. Otwarcie portu z internetu wymaga j
 source_ranges i target_tags lub target_service_accounts, zgodnie z poleceniem użytkownika.
 VM używa tags (network tags) do dopasowania reguły; to nie są Resource Manager Tags.
 Klucz publiczny SSH może być śledzony w repo; kluczy prywatnych nigdy nie kopiuj.
+
+## Network Connectivity Center
+
+Moduły ncc-hub i ncc-spoke są atomowe: odpowiednio jeden hub (wejście i output
+hub) oraz jeden spoke (wejście i output spoke). Nie tworzą VPC ani subnetów.
+Jednostki VPC NCC należą do global/networking/ncc/hub/<nazwa>/ oraz
+ global/networking/ncc/spokes/<nazwa>/. VPC spokes mają location = "global";
+warianty hybrydowe mogą być regionalne. Nie myl location ze zmienną region.
+Hub i sieć spoke'a są przekazywane z outputów dependency. include_export_ranges
+bierze CIDR wybranych subnetów przez dependency.subnetwork, bez powtarzania literałów.
+Pełna VPC jest dołączona jako spoke, ale eksportowane są tylko dopasowane zakresy.
+Po wdrożeniu sprawdź ACTIVE hub/spokes, trasy NCC oraz ruch prywatny między VM;
+zweryfikuj również brak eksportu subnetów pominiętych przez filtr.
