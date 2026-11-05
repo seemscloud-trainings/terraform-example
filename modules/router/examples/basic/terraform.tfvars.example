@@ -1,0 +1,10 @@
+provider_config = {
+  project = "project-a"
+  region  = "europe-west1"
+}
+routers = {
+  application = {
+    name    = "application-router"
+    network = "projects/project-a/global/networks/application"
+  }
+}

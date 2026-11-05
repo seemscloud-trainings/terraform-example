@@ -1,0 +1,137 @@
+provider_config = {
+  project = "project-a"
+  region  = "europe-west1"
+}
+
+routers = {
+  a = {
+    name    = "router-a"
+    project = "project-a"
+    network = "projects/project-a/global/networks/vpc-a"
+    bgp = {
+      asn = 65001
+    }
+  }
+  b = {
+    name    = "router-b"
+    project = "project-b"
+    network = "projects/project-b/global/networks/vpc-b"
+    bgp = {
+      asn = 65002
+    }
+  }
+}
+
+gateways = {
+  a = {
+    name    = "gateway-a"
+    project = "project-a"
+    network = "projects/project-a/global/networks/vpc-a"
+  }
+  b = {
+    name    = "gateway-b"
+    project = "project-b"
+    network = "projects/project-b/global/networks/vpc-b"
+  }
+}
+
+tunnels = {
+  a_primary = {
+    name                  = "a-primary"
+    gateway_key           = "a"
+    peer_gateway_key      = "b"
+    vpn_gateway_interface = 0
+    secret_key            = "primary"
+  }
+  a_secondary = {
+    name                  = "a-secondary"
+    gateway_key           = "a"
+    peer_gateway_key      = "b"
+    vpn_gateway_interface = 1
+    secret_key            = "secondary"
+  }
+  b_primary = {
+    name                  = "b-primary"
+    gateway_key           = "b"
+    peer_gateway_key      = "a"
+    vpn_gateway_interface = 0
+    secret_key            = "primary"
+  }
+  b_secondary = {
+    name                  = "b-secondary"
+    gateway_key           = "b"
+    peer_gateway_key      = "a"
+    vpn_gateway_interface = 1
+    secret_key            = "secondary"
+  }
+}
+
+tunnel_router_keys = {
+  a_primary   = "a"
+  a_secondary = "a"
+  b_primary   = "b"
+  b_secondary = "b"
+}
+
+interfaces = {
+  a_primary = {
+    name       = "a-primary-interface"
+    router_key = "a"
+    ip_range   = "169.254.10.1/30"
+  }
+  a_secondary = {
+    name       = "a-secondary-interface"
+    router_key = "a"
+    ip_range   = "169.254.11.1/30"
+  }
+  b_primary = {
+    name       = "b-primary-interface"
+    router_key = "b"
+    ip_range   = "169.254.10.2/30"
+  }
+  b_secondary = {
+    name       = "b-secondary-interface"
+    router_key = "b"
+    ip_range   = "169.254.11.2/30"
+  }
+}
+
+interface_tunnel_keys = {
+  a_primary   = "a_primary"
+  a_secondary = "a_secondary"
+  b_primary   = "b_primary"
+  b_secondary = "b_secondary"
+}
+
+peers = {
+  a_primary = {
+    name            = "a-primary-peer"
+    router_key      = "a"
+    interface_key   = "a_primary"
+    peer_asn        = 65002
+    peer_ip_address = "169.254.10.2"
+  }
+  a_secondary = {
+    name            = "a-secondary-peer"
+    router_key      = "a"
+    interface_key   = "a_secondary"
+    peer_asn        = 65002
+    peer_ip_address = "169.254.11.2"
+  }
+  b_primary = {
+    name            = "b-primary-peer"
+    router_key      = "b"
+    interface_key   = "b_primary"
+    peer_asn        = 65001
+    peer_ip_address = "169.254.10.1"
+  }
+  b_secondary = {
+    name            = "b-secondary-peer"
+    router_key      = "b"
+    interface_key   = "b_secondary"
+    peer_asn        = 65001
+    peer_ip_address = "169.254.11.1"
+  }
+}
+
+# Supply shared_secrets securely with keys primary and secondary.

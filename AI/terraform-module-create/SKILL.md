@@ -111,3 +111,8 @@ w ramach samego pisania modułu.
 
 Opisz wynik, zakres argumentów, pominięcia wynikające z API i wykonane testy.
 Nie utożsamiaj testów mockowanych z dowodem działania całej infrastruktury w GCP.
+
+W testach złożenia nie zakładaj, że mock providera w root zastępuje konfiguracje
+providerów wewnątrz modułów potomnych. Stosuj izolowane kopie bez tych konfiguracji,
+przekaż mock jawnie przez providers i zablokuj użycie prawdziwych poświadczeń/API.
+Nie używaj bezpośredniego apply przykładu jako testu integracyjnego modułów.
