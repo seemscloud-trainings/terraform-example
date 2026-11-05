@@ -1,5 +1,5 @@
 ---
-name: terragrunt-environment-create
+name: terragrunt-structure
 description: Twórz i rozwijaj konfiguracje środowisk Terragrunt w terraform-example/env, korzystając z lokalnych modułów, jawnych zależności i spójnego formatowania HCL. Nie służy do implementowania zasobów wewnątrz modułów Terraform.
 ---
 
