@@ -9,7 +9,7 @@ Skill należy wyłącznie do `terraform-example/AI/`. Nie instaluj go w Codex an
 w katalogu domowym. Przed zmianami odczytaj istniejącą strukturę, instrukcje
 repozytorium, kontrakty wykorzystywanych modułów i stan Git. Zachowaj niezwiązane
 zmiany. Implementację samych modułów opisuje
-[terraform-module-create](../terraform-module-create/SKILL.md).
+[terraform-module](../terraform-module/SKILL.md).
 
 ## Struktura i odpowiedzialność
 

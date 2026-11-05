@@ -1,5 +1,5 @@
 ---
-name: terraform-module-create
+name: terraform-module
 description: Twórz i rozszerzaj moduły Terraform w terraform-example/modules, z pełnym pokryciem argumentów providera, typowanymi wejściami i stabilnymi mapami zasobów. Używaj przy pracy nad modułami tego repozytorium, nie do wdrażania środowisk.
 ---
 

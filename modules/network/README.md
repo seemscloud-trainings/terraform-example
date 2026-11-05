@@ -1,7 +1,7 @@
 # Network
 
 Creates one GCP VPC and zero or more subnets. Follows the repository-local skill
-[`AI/terraform-module-create/SKILL.md`](../../AI/terraform-module-create/SKILL.md).
+[`AI/terraform-module/SKILL.md`](../../AI/terraform-module/SKILL.md).
 
 ## Interface
 

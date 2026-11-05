@@ -2,7 +2,7 @@
 
 Reusable GCP Cloud Router module. It does not create VPN gateways/tunnels, NAT,
 VPCs, Interconnect attachments or router appliances. Follow the repository-local
-[Terraform module skill](../../AI/terraform-module-create/SKILL.md).
+[Terraform module skill](../../AI/terraform-module/SKILL.md).
 
 ## Inputs
 
