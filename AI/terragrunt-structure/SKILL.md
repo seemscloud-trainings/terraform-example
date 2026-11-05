@@ -341,3 +341,22 @@ Istniejące subnety trzeba przenieść między stanami lub zaimportować i usun�
 stary zapis stanu, nigdy odtwarzać zasobu. Przed migracją wykonaj kopie stanów,
 a po niej sprawdź brak create/delete i dalsze działanie BGP. Samo przestawienie
 folderów ani moved wewnątrz jednego modułu nie przenosi zasobu między backendami.
+
+## Instancje Compute Engine
+
+Moduł instance tworzy jedną google_compute_instance.this. Nie tworzy automatycznie
+VPC, subnetu, reguł firewall ani konta usługi. Jawnie przekazuj istniejące zależności;
+strefa musi należeć do regionu subnetu. Instance.zone nadpisuje wejście zone.
+VM należy do konkretnej strefy, nie do global. W env użyj jednostki pod regionem
+(np. compute/instance/<nazwa>), a strefę przekaż jawnie; nie wymyślaj domyślnej.
+Network_interface jest listą, bo kolejność określa nic0, nic1 itd. Nie zmieniaj
+kolejności istniejących kart i nie udawaj, że klucz mapy zapewnia im niezależny stan.
+Powtarzalne pozostałe bloki są mapami. Publiczne IP pojawia się tylko przy jawnym
+access_config; pusta mapa oznacza brak publicznego dostępu. Firewall jest osobny.
+Labels są obsługiwane. Pole tags w VM to network tags dla firewalla, nie Resource
+Manager Tags. Sekrety szyfrowania nie trafiają do outputu ani przykładów z danymi
+rzeczywistymi. Metadata może zawierać sekrety, więc również nie eksportuj jej.
+Boot disk: wybierz source albo initialize_params. Zmiana metadata_startup_script
+może wymienić VM; metadata["startup-script"] ma inne zachowanie. Aktualizacje
+machine_type mogą wymagać allow_stopping_for_update. Nie ustawiaj automatycznie
+tej zgody ani publicznego IP.

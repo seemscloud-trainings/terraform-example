@@ -63,14 +63,15 @@ Aktualne granice, których nie należy mieszać:
 |---|---|
 | `network` | Dokładnie jedna globalna VPC, bez subnetów ani innych zasobów |
 | `subnetwork` | Mapa regionalnych subnetów; przyjmuje istniejące VPC przez network |
+| `instance` | Dokładnie jedna VM; wymagany obiekt instance, jawna strefa, istniejące subnety |
 | `router` | Dokładnie jeden Cloud Router, wymagany obiekt router; bez interfejsów i peerów |
 | `vpn-ha` | Dokładnie jedna brama HA VPN, wymagany obiekt gateway; bez tuneli |
 | `router-connection` | Mapy interfejsów i peerów jednego istniejącego routera; router jako nazwa, bez tworzenia routera |
 | `vpn-tunnel` | Mapa tuneli między istniejącymi bramami; bez tworzenia bram i routerów |
 
-Network, router i brama VPN są atomowe: jeden zasób główny na wywołanie modułu.
+Network, instance, router i brama VPN są atomowe: jeden zasób główny na wywołanie modułu.
 Nie stosuj do nich map, count, for_each ani opcjonalnego trybu tworzenia zera zasobów.
-Resource ma adres this, a output jest pojedynczym obiektem network/router/gateway.
+Resource ma adres this, a output jest pojedynczym obiektem network/instance/router/gateway.
 Wiele zasobów głównych realizuj przez osobne katalogi Terragrunt
 network/<nazwa-jednostki>/, router/<nazwa-jednostki>/ i vpn-gateway/<nazwa-jednostki>/.
 Mapy pozostają dla subnetów, tuneli, interfejsów, peerów i bloków podrzędnych.
@@ -82,6 +83,7 @@ Nie dodawaj backendu ani konfiguracji środowiska do modułów.
 |---|---|---|
 | network | network: object | network: object |
 | subnetwork | subnetworks: map(object), wymagane network każdego subnetu | subnetworks: map(object) |
+| instance | instance: object, zone: string lub instance.zone | instance: object |
 | router | router: object | router: object |
 | vpn-ha | gateway: object | gateway: object |
 | router-connection | router: string, interfaces i peers: map(object) | interfaces i peers: map(object) |
@@ -235,3 +237,22 @@ sieciowego. Pisanie modułu nie upoważnia do wdrożenia infrastruktury.
 Przy migracji starych jednostek main zachowaj klucze backendu i moved z
 this["main"] do this dla routera/bramy. Inne historyczne klucze wymagają osobnej
 migracji; nie zakładaj, że moved dla main obsługuje całą dawną mapę.
+
+## Instancje Compute Engine
+
+Moduł instance tworzy jedną google_compute_instance.this. Nie tworzy automatycznie
+VPC, subnetu, reguł firewall ani konta usługi. Jawnie przekazuj istniejące zależności;
+strefa musi należeć do regionu subnetu. Instance.zone nadpisuje wejście zone.
+VM należy do konkretnej strefy, nie do global. W env użyj jednostki pod regionem
+(np. compute/instance/<nazwa>), a strefę przekaż jawnie; nie wymyślaj domyślnej.
+Network_interface jest listą, bo kolejność określa nic0, nic1 itd. Nie zmieniaj
+kolejności istniejących kart i nie udawaj, że klucz mapy zapewnia im niezależny stan.
+Powtarzalne pozostałe bloki są mapami. Publiczne IP pojawia się tylko przy jawnym
+access_config; pusta mapa oznacza brak publicznego dostępu. Firewall jest osobny.
+Labels są obsługiwane. Pole tags w VM to network tags dla firewalla, nie Resource
+Manager Tags. Sekrety szyfrowania nie trafiają do outputu ani przykładów z danymi
+rzeczywistymi. Metadata może zawierać sekrety, więc również nie eksportuj jej.
+Boot disk: wybierz source albo initialize_params. Zmiana metadata_startup_script
+może wymienić VM; metadata["startup-script"] ma inne zachowanie. Aktualizacje
+machine_type mogą wymagać allow_stopping_for_update. Nie ustawiaj automatycznie
+tej zgody ani publicznego IP.
