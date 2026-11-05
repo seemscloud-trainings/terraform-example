@@ -36,12 +36,7 @@ inputs = {
       vpn_gateway_interface = tunnel.interface
       router                = dependency.router.outputs.router.self_link
       ike_version           = 2
-      params = {
-        resource_manager_tags = {
-          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-        }
-      }
-      secret_key = key
+      secret_key            = key
     }
   }
 }

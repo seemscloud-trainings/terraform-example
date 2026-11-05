@@ -26,20 +26,10 @@ inputs = {
   network = {
     name         = "atlas"
     routing_mode = "GLOBAL"
-    params = {
-      resource_manager_tags = {
-        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-      }
-    }
   }
   subnetworks = {
     main = {
-      name = "atlas"
-      params = {
-        resource_manager_tags = {
-          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-        }
-      }
+      name          = "atlas"
       ip_cidr_range = "10.80.0.0/24"
     }
   }

@@ -11,19 +11,19 @@ kopiuj do katalogu domowego lub innych repozytoriów. Przeczytaj instrukcje
 repozytorium, stan Git, istniejące wejścia/wyjścia oraz wywołania zmienianego modułu.
 Dla konfiguracji środowiska używaj [terragrunt-structure](../terragrunt-structure/SKILL.md).
 
-## Labels i Resource Manager Tags
+## Oznaczenia zasobów
 
-Kontrakt plików kontekstowych, namespace tagów i ich przekazywanie opisuje
-[terragrunt-structure](../terragrunt-structure/SKILL.md#labels-i-resource-manager-tags).
-Nie twórz pomocniczego modułu tags ani jednostki zarządzającej katalogiem tagów.
-Moduły przyjmują params.resource_manager_tags jawnie na danym zasobie; nie
-zamieniają automatycznie environment ani default_labels w tagi GCP.
-Provider otrzymuje default_labels. Bezpośrednie labels zasobu mogą je nadpisać;
-przy regionalnym override trzeba przekazać właściwe oznaczenie regionu.
-Sprawdzaj wsparcie w schemacie konkretnego zasobu. Obecnie network, subnetwork
-oraz router mają resource_manager_tags, ale nie labels. HA VPN gateway i tunnel
-mają oba mechanizmy; interfejsy routera i peery BGP nie mają żadnego z nich.
-Nie dodawaj nieobsługiwanych pól. Zwykłe network tags VM nie są zamiennikiem.
+W plikach environment.hcl, project.hcl i region.hcl trzymaj kontekst i labels
+w locals; inputs przekazuje local.environment/project/region i local.labels.
+Scalaj labels z kontekstów i przekazuj przez default_labels. Bramy i tunele VPN
+obsługują labels; VPC, subnety, routery i interfejsy/peery nie mają tego pola
+w obecnie używanym providerze. Nie dodawaj nieobsługiwanych argumentów.
+Nie konfiguruj Resource Manager Tags w env i nie twórz dodatkowej jednostki,
+modułu ani procedury ręcznego zakładania tagów. Jeśli oznaczenie wymaga takich
+obejść, pomiń je. Opcjonalne pola providera w uniwersalnych modułach mogą pozostać,
+ale ich dostępność nie oznacza, że wdrożenie ma ich używać.
+Nie wykonuj ręcznych zmian zasobów chmurowych przez CLI/API; wdrażaj przez
+Terraform/Terragrunt. CLI do dostępu, odczytu i uruchomienia Terraform jest dozwolone.
 
 ## Nazwy zasobów w chmurze
 

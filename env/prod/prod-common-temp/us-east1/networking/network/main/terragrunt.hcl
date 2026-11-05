@@ -26,20 +26,10 @@ inputs = {
   network = {
     name         = "orion"
     routing_mode = "GLOBAL"
-    params = {
-      resource_manager_tags = {
-        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-      }
-    }
   }
   subnetworks = {
     main = {
-      name = "orion"
-      params = {
-        resource_manager_tags = {
-          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-        }
-      }
+      name          = "orion"
       ip_cidr_range = "10.81.0.0/24"
     }
   }

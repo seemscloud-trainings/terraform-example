@@ -24,13 +24,8 @@ inputs = {
     local.region.inputs.labels,
   )
   gateway = {
-    name    = "atlas"
-    network = dependency.network.outputs.network.self_link
-    params = {
-      resource_manager_tags = {
-        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-      }
-    }
+    name               = "atlas"
+    network            = dependency.network.outputs.network.self_link
     gateway_ip_version = "IPV4"
     stack_type         = "IPV4_ONLY"
   }

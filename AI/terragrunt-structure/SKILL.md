@@ -10,32 +10,19 @@ Skill pozostaje wyłącznie w tym repozytorium, bez instalowania w Codex lub hom
 Sprawdź instrukcje, stan Git, root.hcl i kontrakty używanych modułów. Ich implementację
 opisuje [terraform-module](../terraform-module/SKILL.md). Nie modyfikuj cudzych zmian.
 
-## Labels i Resource Manager Tags
+## Oznaczenia zasobów
 
-W environment.hcl, project.hcl i region.hcl definiuj kontekst, labels oraz tags
-w locals, a w inputs przekazuj wyłącznie local.environment/project/region,
-local.labels i local.tags. W mapach odwołuj się do tych locals, np. environment = local.environment.
-Nie powtarzaj wartości kontekstu jako literałów.
-Jednostki scalają mapy w kolejności environment → project → region.
-Tags w tych plikach są logicznymi nazwami i wartościami, nie identyfikatorami GCP.
-Mapy tags odczytuj z tych samych plików kontekstowych przez locals i przekazuj
-bezpośrednio do resource_manager_tags danego zasobu. Używaj namespaced keys:
-"${local.project.inputs.project}/${key}" => value dla tagów tego projektu.
-Nie twórz jednostki ani modułu tags, nie dodawaj dependency.tags i nie twórz
-kluczy/wartości tagów automatycznie. Referencje wskazują istniejące tagi GCP;
-przekazanie mapy nie tworzy TagKey/TagValue. Nie deklaruj gotowości wdrożenia,
-jeśli istnienie tych tagów nie zostało sprawdzone. params.resource_manager_tags
-służy do przypięcia przy tworzeniu zasobu, nie do aktualizacji istniejących tagów.
-Nie myl namespace klucza tagu z nazwą zasobu: prefiks projektu w kluczu tagu
-jest formatem API, a nie zakazanym prefiksem nazwy. Dla tagów organizacyjnych
-lub z innego projektu nie zakładaj lokalnego namespace; ustal go jawnie.
-Nie traktuj ustawienia params jako bezpiecznej aktualizacji istniejącego zasobu;
-sprawdź zachowanie przypiętej wersji providera przed operacją na stanie.
-Labels przekazuj przez default_labels do zasobów, które je obsługują.
-VPC jest globalna: otrzymuje tylko tagi environment i project. Subnety, routery,
-bramy i tunele otrzymują także region. Interfejsy i peery BGP nie obsługują tych
-pól. Nie dodawaj fikcyjnych argumentów ani network tags jako zamiennika labels.
-Dla zasobów nadpisujących region używaj faktycznego regionu zasobu.
+W plikach environment.hcl, project.hcl i region.hcl trzymaj kontekst i labels
+w locals; inputs przekazuje local.environment/project/region i local.labels.
+Scalaj labels z kontekstów i przekazuj przez default_labels. Bramy i tunele VPN
+obsługują labels; VPC, subnety, routery i interfejsy/peery nie mają tego pola
+w obecnie używanym providerze. Nie dodawaj nieobsługiwanych argumentów.
+Nie konfiguruj Resource Manager Tags w env i nie twórz dodatkowej jednostki,
+modułu ani procedury ręcznego zakładania tagów. Jeśli oznaczenie wymaga takich
+obejść, pomiń je. Opcjonalne pola providera w uniwersalnych modułach mogą pozostać,
+ale ich dostępność nie oznacza, że wdrożenie ma ich używać.
+Nie wykonuj ręcznych zmian zasobów chmurowych przez CLI/API; wdrażaj przez
+Terraform/Terragrunt. CLI do dostępu, odczytu i uruchomienia Terraform jest dozwolone.
 
 ## Nazwy zasobów w chmurze
 
@@ -126,15 +113,11 @@ locals {
     environment = local.environment
   }
 
-  tags = {
-    environment = local.environment
-  }
 }
 
 inputs = {
   environment = local.environment
   labels      = local.labels
-  tags        = local.tags
 }
 ```
 
@@ -148,15 +131,11 @@ locals {
     project = local.project
   }
 
-  tags = {
-    project = local.project
-  }
 }
 
 inputs = {
   project = local.project
   labels  = local.labels
-  tags    = local.tags
 }
 ```
 
@@ -170,15 +149,11 @@ locals {
     region = local.region
   }
 
-  tags = {
-    region = local.region
-  }
 }
 
 inputs = {
   region = local.region
   labels = local.labels
-  tags   = local.tags
 }
 ```
 
@@ -211,11 +186,6 @@ inputs = {
   network = {
     name = "atlas"
 
-    params = {
-      resource_manager_tags = {
-        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-      }
-    }
   }
 }
 ```
@@ -329,7 +299,7 @@ Nie instaluj tych skillów globalnie.
 2. Utwórz jednostkę pod właściwym regionem i obszarem. Dla sieci, routera i bramy
    dodaj osobny katalog pod network/, router/ lub vpn-gateway/.
 3. Odczytaj kontekst przez locals, przekaż go do inputs i umieść jawne argumenty
-   zasobu w tej jednostce. Dodaj labels/tagi zgodnie z obsługą zasobu i zakresem.
+   zasobu w tej jednostce. Dodaj labels zgodnie z obsługą zasobu i zakresem.
 4. Wskaż konkretne zależności i ich outputy, a bloki dependency zapisz na końcu.
    Dla sieci/routera/bramy używaj pojedynczego outputu, bez wyboru klucza main.
 5. Sprawdź graf, unikalność nazwy i stanu oraz kolizje adresacji. Kopia jednostki

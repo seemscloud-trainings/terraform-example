@@ -26,11 +26,6 @@ inputs = {
   router = {
     name    = "orion"
     network = dependency.network.outputs.network.self_link
-    params = {
-      resource_manager_tags = {
-        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-      }
-    }
     bgp = {
       asn            = 65002
       advertise_mode = "DEFAULT"
