@@ -23,6 +23,11 @@ inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
   region      = local.region.inputs.region
+  default_labels = merge(
+    local.environment.inputs.labels,
+    local.project.inputs.labels,
+    local.region.inputs.labels,
+  )
   tunnels = {
     for key, tunnel in local.connection.tunnels : key => {
       name                  = tunnel.name
@@ -31,7 +36,12 @@ inputs = {
       vpn_gateway_interface = tunnel.interface
       router                = dependency.router.outputs.routers.main.self_link
       ike_version           = 2
-      secret_key            = key
+      params = {
+        resource_manager_tags = {
+          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : dependency.tags.outputs.keys[key] => dependency.tags.outputs.values["${key}/${value}"]
+        }
+      }
+      secret_key = key
     }
   }
 }
@@ -46,4 +56,8 @@ dependency "gateway" {
 
 dependency "peer_gateway" {
   config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/vpn-gateway"
+}
+
+dependency "tags" {
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/tags"
 }

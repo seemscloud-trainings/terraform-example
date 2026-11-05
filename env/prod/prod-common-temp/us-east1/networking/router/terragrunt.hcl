@@ -18,10 +18,20 @@ inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
   region      = local.region.inputs.region
+  default_labels = merge(
+    local.environment.inputs.labels,
+    local.project.inputs.labels,
+    local.region.inputs.labels,
+  )
   routers = {
     main = {
       name    = "orion"
       network = dependency.network.outputs.network.self_link
+      params = {
+        resource_manager_tags = {
+          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : dependency.tags.outputs.keys[key] => dependency.tags.outputs.values["${key}/${value}"]
+        }
+      }
       bgp = {
         asn            = 65002
         advertise_mode = "DEFAULT"
@@ -32,4 +42,8 @@ inputs = {
 
 dependency "network" {
   config_path = "../network/main"
+}
+
+dependency "tags" {
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/tags"
 }

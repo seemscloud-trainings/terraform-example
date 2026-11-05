@@ -11,6 +11,22 @@ kopiuj do katalogu domowego lub innych repozytoriów. Przeczytaj instrukcje
 repozytorium, stan Git, istniejące wejścia/wyjścia oraz wywołania zmienianego modułu.
 Dla konfiguracji środowiska używaj [terragrunt-structure](../terragrunt-structure/SKILL.md).
 
+## Labels i Resource Manager Tags
+
+W environment.hcl, project.hcl i region.hcl definiuj kontekst, labels oraz tags
+w locals, a w inputs przekazuj wyłącznie local.environment/project/region,
+local.labels i local.tags. Nie powtarzaj wartości kontekstu w mapach.
+Jednostki scalają mapy w kolejności environment → project → region.
+Tags w tych plikach są logicznymi nazwami i wartościami, nie identyfikatorami GCP.
+Projektowa jednostka tags tworzy klucze i wartości przez modules/tags; zbiera
+regiony z */region.hcl bez ponownego ręcznego wpisywania listy regionów.
+Przekazuj resource_manager_tags jako ID z dependency.tags.outputs.keys/values.
+Labels przekazuj przez default_labels do zasobów, które je obsługują.
+VPC jest globalna: otrzymuje tylko tagi environment i project. Subnety, routery,
+bramy i tunele otrzymują także region. Interfejsy i peery BGP nie obsługują tych
+pól. Nie dodawaj fikcyjnych argumentów ani network tags jako zamiennika labels.
+Dla zasobów nadpisujących region używaj faktycznego regionu zasobu.
+
 ## Nazwy zasobów w chmurze
 
 Nazwy nadawane zasobom muszą być krótkie i opisowe, np. `atlas`, `orion`,
