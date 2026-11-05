@@ -109,10 +109,23 @@ Nie umieszczaj zagnieżdżonego przypisania po otwierającej klamrze ani kilku k
 zamykających w jednej linii. Puste `{}` mogą zostać zwarte. Sam fmt nie wymusza
 wszystkich tych zasad — przejrzyj wynik.
 
-Sekrety są osobnymi wrażliwymi wejściami, nigdy kluczami iteracji ani outputami.
+Dobierz sposób przekazywania sekretu do kontraktu zasobu:
+- PSK tuneli przekazuj osobnymi mapami sensitive, wybieranymi przez secret_key;
+  nie umieszczaj ich w obiektach definiujących topologię tuneli.
+- Pola uwierzytelniania należące do zagnieżdżonego bloku zasobu, np. klucze MD5
+  routera/peera, mogą pozostać w typowanym obiekcie tego bloku. Zachowaj ich
+  wrażliwość, a przy przekazaniu do zasobu użyj sensitive, jeśli schema providera
+  nie oznacza pola jako wrażliwego. Nie wymuszaj przebudowy takiego kontraktu na
+  osobną mapę tylko dla ujednolicenia go z PSK.
+
+Sekrety nigdy nie są kluczami iteracji, nazwami zasobów ani wartościami outputów.
+Nie odtajniaj całego obiektu w celu użycia for_each — tylko jego publiczne klucze.
+Sprawdź testem, że wrażliwe wejście nie blokuje iteracji ani nie trafia do wyjść.
+Sensitive ukrywa prezentację wartości, lecz samo w sobie nie usuwa jej ze stanu.
 Dla obsługiwanych write-only argumentów można używać wejść ephemeral i wersji
-rotacji; uwzględnij wtedy wymaganie Terraform >= 1.11. Standardowe PSK trafiają
-do stanu, co musi być opisane. Nie zapisuj prawdziwych sekretów w repozytorium.
+rotacji; uwzględnij wtedy wymaganie Terraform >= 1.11. Opisz przechowywanie sekretów
+w stanie dla standardowych argumentów, w tym PSK i MD5. Nie zapisuj prawdziwych
+sekretów w repozytorium.
 
 ## Przykłady, testy i zakończenie
 
@@ -123,6 +136,18 @@ Nie dodawaj demonstracyjnych środowisk ani podłączenia do env poza zakresem z
 Uruchom fmt, init z wyłączonym backendem, validate i testy zachowania na mockach:
 minimum/pusta mapa, powiązania i nadpisania, opcjonalne bloki, błędne wejścia,
 zachowanie ID po dodaniu/usunięciu innego klucza. Nie używaj realnego apply jako testu.
+Po testach wykonaj osobną kontrolę kompletności dla każdego rodzaju zasobu.
+Porównaj aktualny schemat przypiętej wersji providera z typami wejść i przypisaniami
+w resource, rekurencyjnie przez wszystkie bloki zagnieżdżone. Dla każdej ścieżki
+konfigurowalnego argumentu wskaż wejście i miejsce przekazania wartości, jawne
+powiązanie wewnętrzne albo udokumentowany powód wyłączenia. Sprawdź także
+optional+computed oraz szczególne przypadki pól id opisane wyżej. Brak przypisania
+lub nieuzasadnione pominięcie oznacza nieukończony moduł. Samo wystąpienie nazwy
+pola w pliku nie wystarcza — musi być poprawnie podłączone we właściwym bloku.
+W podsumowaniu podaj wersję sprawdzonego schematu i ewentualne wyłączenia.
+Fmt, validate i testy wybranych scenariuszy nie zastępują tej kontroli: mogą
+przejść mimo pominięcia opcjonalnej funkcji.
+
 Provider jest konfigurowany wewnątrz modułu; module call nie może więc używać
 count/for_each/depends_on. Root mock nie musi zastąpić providera zagnieżdżonego.
 Przy testach złożenia użyj izolowanych kopii bez konfiguracji providerów, przekaż
