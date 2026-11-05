@@ -42,13 +42,17 @@ przez dopisywanie regionu lub typu zasobu. Zachowuj stabilne klucze map i stan.
 
 ## Granice katalogów
 
-Zachowuj hierarchię env/<środowisko>/<projekt>/<region>/<obszar>/<jednostka>.
+Zachowuj hierarchię env/<środowisko>/<projekt>/<zakres>/<obszar>/<jednostka>.
+Zakres to global dla zasobów globalnych albo rzeczywisty region dla regionalnych.
 Bezpośrednio w env są katalogi środowisk, w środowisku katalogi projektów,
-a w projekcie katalogi regionów. Na tych poziomach dopuszczone są odpowiednie
+a w projekcie global i katalogi regionów. Na tych poziomach dopuszczone są odpowiednie
 pliki kontekstowe environment.hcl, project.hcl i region.hcl.
-Nie dodawaj tam katalogów usługowych, np. tags, network, router lub vpn-gateway.
-Jednostki sieciowe należą do <region>/networking/. Globalny zakres zasobu GCP
-nie upoważnia do tworzenia nowego poziomu hierarchii ani katalogu przy projekcie.
+Nie dodawaj bezpośrednio przy projekcie katalogów usługowych, np. tags lub network.
+Globalne VPC należą do global/networking/network/<nazwa-jednostki>/.
+Subnety należą do <region>/networking/subnetwork/<nazwa-jednostki>/.
+Routery, bramy, tunele i BGP również pozostają pod właściwym regionem.
+Networking jest kategorią, nie zakresem GCP: występuje zarówno w global, jak i w regionach.
+Nie twórz region.hcl z region = "global"; globalna jednostka nie czyta region.hcl.
 Nie dodawaj jednostek pomocniczych dla metadanych odczytywanych z plików
 kontekstowych. Nie zmieniaj hierarchii bez polecenia użytkownika.
 Przy przenoszeniu jednostki popraw wszystkie dependency i zachowaj klucz stanu.
@@ -62,10 +66,12 @@ env/<środowisko>/
 ├── environment.hcl
 └── <projekt>/
     ├── project.hcl
+    ├── global/
+    │   └── networking/network/<nazwa-jednostki>/terragrunt.hcl
     └── <region>/
         ├── region.hcl
         └── networking/
-            ├── network/<nazwa-jednostki>/terragrunt.hcl
+            ├── subnetwork/<nazwa-jednostki>/terragrunt.hcl
             ├── router/<nazwa-jednostki>/terragrunt.hcl
             ├── vpn-gateway/<nazwa-jednostki>/terragrunt.hcl
             └── connections/<nazwa-połączenia>/
@@ -87,7 +93,7 @@ Nowe połączenie nie duplikuje tych zasobów. Nie twórz automatycznie pełnej 
 połączeń; wykonuj tylko żądaną topologię.
 
 Parametry zasobu wpisuj bezpośrednio do inputs jednostki, która go tworzy:
-nazwy VPC/subnetu i CIDR do network, nazwę routera i ASN do router, nazwę bramy
+nazwę VPC do network, nazwę subnetu i CIDR do subnetwork, nazwę routera i ASN do router, nazwę bramy
 do vpn-gateway. Nie dodawaj zbiorczych plików z tymi wartościami ani pośredniego
 local.site. Wspólne pliki kontekstowe to environment.hcl, project.hcl i region.hcl.
 connection.hcl pozostaje metadanymi konkretnego połączenia używanymi przez jego
@@ -159,6 +165,8 @@ inputs = {
 
 Nazwy środowiska, projektu i regionu powyżej są przykładem; dla nowej jednostki
 odczytaj jej najbliższe pliki kontekstowe. Nie kopiuj tych literałów do jednostek.
+Jednostka regionalna dodatkowo czyta region.hcl w locals i przekazuje
+region = local.region.inputs.region. Jednostka globalna pomija oba te elementy.
 Przykład jednostki tworzącej globalną VPC:
 
 ```hcl
@@ -171,7 +179,6 @@ terraform_binary = "terraform"
 locals {
   environment = read_terragrunt_config(find_in_parent_folders("environment.hcl"))
   project     = read_terragrunt_config(find_in_parent_folders("project.hcl"))
-  region      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
 }
 
 terraform {
@@ -181,7 +188,6 @@ terraform {
 inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
-  region      = local.region.inputs.region
 
   network = {
     name = "atlas"
@@ -231,7 +237,9 @@ router i gateway — bez mapy oraz bez .main.
 
 ## Składanie modułów bez cyklu
 
-Aktualna kolejność: network → router / vpn-gateway → tunnels → bgp.
+Aktualne zależności: globalny network → regionalny subnetwork;
+globalny network → regionalny router / vpn-gateway → tunnels → bgp.
+Subnet korzysta z dependency do konkretnej globalnej VPC i jej network.self_link.
 Jednostka router/<nazwa>/ używa modułu router i tworzy dokładnie jeden router.
 Jednostka vpn-gateway/<nazwa>/ używa vpn-ha i tworzy dokładnie jedną bramę.
 Tunnels używa vpn-tunnel, a bgp używa router-connection dla istniejącego routera.
@@ -296,8 +304,9 @@ Nie instaluj tych skillów globalnie.
 
 1. Wybierz istniejący moduł według odpowiedzialności i przeczytaj jego wejścia
    oraz outputy. Nie zmieniaj atomowego modułu na mapę dla wygody wywołania.
-2. Utwórz jednostkę pod właściwym regionem i obszarem. Dla sieci, routera i bramy
-   dodaj osobny katalog pod network/, router/ lub vpn-gateway/.
+2. Ustal zakres z API zasobu: global lub region. VPC umieść w global/networking/network/,
+   subnet w <region>/networking/subnetwork/, a router i bramę pod regionem.
+   Dodaj osobny katalog jednostki; nie łącz zasobów o różnych zakresach w jednym module.
 3. Odczytaj kontekst przez locals, przekaż go do inputs i umieść jawne argumenty
    zasobu w tej jednostce. Dodaj labels zgodnie z obsługą zasobu i zakresem.
 4. Wskaż konkretne zależności i ich outputy, a bloki dependency zapisz na końcu.
@@ -325,3 +334,10 @@ Router/main oraz vpn-gateway/main zachowują stare klucze stanu sprzed zmiany
 katalogów. Moduły zawierają moved this["main"] → this. Przeniesienie kodu tuneli
 i BGP do osobnych modułów zachowuje ich dotychczasowe adresy zasobów i backendy.
 Nie uruchamiaj migracji na żywo podczas samej zmiany struktury kodu.
+
+Po rozdzieleniu VPC/subnetów stare klucze backendu sieci są zachowane przez aliasy
+w root.hcl, mimo globalnej ścieżki jednostki. Subnety otrzymują osobne backendy.
+Istniejące subnety trzeba przenieść między stanami lub zaimportować i usunąć ich
+stary zapis stanu, nigdy odtwarzać zasobu. Przed migracją wykonaj kopie stanów,
+a po niej sprawdź brak create/delete i dalsze działanie BGP. Samo przestawienie
+folderów ani moved wewnątrz jednego modułu nie przenosi zasobu między backendami.

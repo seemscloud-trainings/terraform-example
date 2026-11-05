@@ -11,7 +11,7 @@ locals {
 }
 
 terraform {
-  source = "${get_repo_root()}//modules/network"
+  source = "${get_repo_root()}//modules/subnetwork"
 }
 
 inputs = {
@@ -23,14 +23,15 @@ inputs = {
     local.project.inputs.labels,
     local.region.inputs.labels,
   )
-  network = {
-    name         = "atlas"
-    routing_mode = "GLOBAL"
-  }
   subnetworks = {
     main = {
+      network       = dependency.network.outputs.network.self_link
       name          = "atlas"
       ip_cidr_range = "10.80.0.0/24"
     }
   }
+}
+
+dependency "network" {
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/global/networking/network/atlas"
 }

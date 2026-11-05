@@ -61,7 +61,8 @@ Aktualne granice, których nie należy mieszać:
 
 | Moduł | Zasoby i zachowanie |
 |---|---|
-| `network` | Jedna VPC oraz mapa subnetów; bez VM, VPN, routerów, NAT i firewalli |
+| `network` | Dokładnie jedna globalna VPC, bez subnetów ani innych zasobów |
+| `subnetwork` | Mapa regionalnych subnetów; przyjmuje istniejące VPC przez network |
 | `router` | Dokładnie jeden Cloud Router, wymagany obiekt router; bez interfejsów i peerów |
 | `vpn-ha` | Dokładnie jedna brama HA VPN, wymagany obiekt gateway; bez tuneli |
 | `router-connection` | Mapy interfejsów i peerów jednego istniejącego routera; router jako nazwa, bez tworzenia routera |
@@ -79,7 +80,8 @@ Nie dodawaj backendu ani konfiguracji środowiska do modułów.
 
 | Moduł | Wejście zasobu | Output zasobu |
 |---|---|---|
-| network | network: object, subnetworks: map(object) | network: object, subnetworks: map(object) |
+| network | network: object | network: object |
+| subnetwork | subnetworks: map(object), wymagane network każdego subnetu | subnetworks: map(object) |
 | router | router: object | router: object |
 | vpn-ha | gateway: object | gateway: object |
 | router-connection | router: string, interfaces i peers: map(object) | interfaces i peers: map(object) |
@@ -157,7 +159,9 @@ nie wartości sekretów. Klucze muszą być znane przed apply. Listy pozostaw dl
 wartości/protokołów i bloków, których kolejność ma znaczenie. Mapa nie usuwa
 wymiany wymuszonej zmianą niezmiennego argumentu providera.
 
-Domyślnie wiąż zasoby deklaratywnie, np. subnet → self_link utworzonej VPC.
+Wiąż zasoby między modułami przez outputy, np. subnet.network → network.self_link.
+Nie twórz VPC wewnątrz modułu subnetwork ani subnetów wewnątrz network.
+Globalna VPC nie ma regionu; nie przypisuj jej do regionu jednego z subnetów.
 Zachowaj jawne nadpisania i udokumentuj pierwszeństwo. Moduł router-connection
 przyjmuje jedną nazwę routera; peer wybiera interface_key z lokalnej mapy albo
 interface jako istniejącą nazwę, nigdy oba. Moduł vpn-tunnel przyjmuje referencje

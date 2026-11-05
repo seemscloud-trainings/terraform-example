@@ -9,7 +9,7 @@ variable "subnetworks" {
     ip_collection                    = optional(string)
     ipv6_access_type                 = optional(string)
     name                             = string
-    network                          = optional(string)
+    network                          = string
     private_ip_google_access         = optional(bool)
     private_ipv6_google_access       = optional(string)
     project                          = optional(string)

@@ -9,10 +9,10 @@ resource "google_compute_subnetwork" "this" {
   ip_collection                    = each.value.ip_collection
   ipv6_access_type                 = each.value.ipv6_access_type
   name                             = local.naming.subnetworks[each.key]
-  network                          = each.value.network != null ? each.value.network : google_compute_network.this.self_link
+  network                          = each.value.network
   private_ip_google_access         = each.value.private_ip_google_access
   private_ipv6_google_access       = each.value.private_ipv6_google_access
-  project                          = each.value.project != null ? each.value.project : local.network_project
+  project                          = each.value.project != null ? each.value.project : var.project
   purpose                          = each.value.purpose
   region                           = each.value.region != null ? each.value.region : var.region
   reserved_internal_range          = each.value.reserved_internal_range

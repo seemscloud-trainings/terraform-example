@@ -34,5 +34,5 @@ inputs = {
 }
 
 dependency "network" {
-  config_path = "../../network/main"
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/global/networking/network/atlas"
 }
