@@ -1,7 +1,9 @@
 include "root" {
   path = find_in_parent_folders("root.hcl")
 }
+
 terraform_binary = "terraform"
+
 locals {
   project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
@@ -13,9 +15,11 @@ locals {
     region  = local.region.inputs.region_name
   }
 }
+
 terraform {
   source = "${get_repo_root()}//modules/vpn-ha"
 }
+
 dependency "network" {
   config_path                             = "../network"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
@@ -27,6 +31,7 @@ dependency "network" {
     }
   }
 }
+
 inputs = {
   provider_config = local.provider_config
   gateways = { main = {

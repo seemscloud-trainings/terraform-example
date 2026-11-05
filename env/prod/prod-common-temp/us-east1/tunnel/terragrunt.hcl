@@ -1,7 +1,9 @@
 include "root" {
   path = find_in_parent_folders("root.hcl")
 }
+
 terraform_binary = "terraform"
+
 locals {
   project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
@@ -13,6 +15,7 @@ locals {
     region  = local.region.inputs.region_name
   }
 }
+
 terraform {
   source = "${get_repo_root()}//modules/vpn-ha"
   extra_arguments "vpn_secrets" {
@@ -20,6 +23,7 @@ terraform {
     required_var_files = [get_env("VPN_SECRETS_FILE", "${get_repo_root()}/vpn.secrets.tfvars")]
   }
 }
+
 dependency "router" {
   config_path                             = "../router"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
@@ -33,6 +37,7 @@ dependency "router" {
     } }
   }
 }
+
 dependency "gateway" {
   config_path                             = "../vpn-gateway"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
@@ -44,6 +49,7 @@ dependency "gateway" {
     } }
   }
 }
+
 dependency "peer_gateway" {
   config_path                             = "../../${local.site.peer_region}/vpn-gateway"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
@@ -55,6 +61,7 @@ dependency "peer_gateway" {
     } }
   }
 }
+
 inputs = {
   provider_config = local.provider_config
   tunnels = { for key, tunnel in local.site.tunnels : key => {

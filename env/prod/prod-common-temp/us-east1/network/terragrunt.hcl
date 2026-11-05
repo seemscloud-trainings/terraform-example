@@ -1,7 +1,9 @@
 include "root" {
   path = find_in_parent_folders("root.hcl")
 }
+
 terraform_binary = "terraform"
+
 locals {
   project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
@@ -13,9 +15,11 @@ locals {
     region  = local.region.inputs.region_name
   }
 }
+
 terraform {
   source = "${get_repo_root()}//modules/network"
 }
+
 inputs = {
   provider_config = local.provider_config
   network         = { name = local.site.network_name, routing_mode = "GLOBAL" }

@@ -1,7 +1,9 @@
 include "root" {
   path = find_in_parent_folders("root.hcl")
 }
+
 terraform_binary = "terraform"
+
 locals {
   project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
@@ -13,9 +15,11 @@ locals {
     region  = local.region.inputs.region_name
   }
 }
+
 terraform {
   source = "${get_repo_root()}//modules/router"
 }
+
 dependency "router" {
   config_path                             = "../router"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
@@ -29,6 +33,7 @@ dependency "router" {
     } }
   }
 }
+
 dependency "tunnel" {
   config_path                             = "../tunnel"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
@@ -40,6 +45,7 @@ dependency "tunnel" {
     } }
   }
 }
+
 inputs = {
   provider_config = local.provider_config
   # No routers map: this unit owns only interfaces and peers on the existing router.
