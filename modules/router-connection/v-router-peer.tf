@@ -21,7 +21,6 @@ variable "peers" {
     peer_ipv6_nexthop_address          = optional(string)
     project                            = optional(string)
     region                             = optional(string)
-    router                             = optional(string)
     router_appliance_instance          = optional(string)
     zero_advertised_route_priority     = optional(bool)
     zero_custom_learned_route_priority = optional(bool)
@@ -47,7 +46,6 @@ variable "peers" {
       delete = optional(string)
       update = optional(string)
     }))
-    router_key    = optional(string)
     interface_key = optional(string)
   }))
   default     = {}
@@ -56,14 +54,6 @@ variable "peers" {
   validation {
     condition     = alltrue([for v in values(var.peers) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))])
     error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
-  }
-  validation {
-    condition     = alltrue([for v in values(var.peers) : (v.router != null) != (v.router_key != null)])
-    error_message = "Supply exactly one of router or router_key."
-  }
-  validation {
-    condition     = alltrue([for v in values(var.peers) : v.router_key == null ? true : contains(keys(var.routers), v.router_key)])
-    error_message = "router_key must identify a router created by this module invocation."
   }
   validation {
     condition     = alltrue([for v in values(var.peers) : (v.interface != null) != (v.interface_key != null)])

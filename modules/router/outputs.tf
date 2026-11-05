@@ -1,48 +1,12 @@
-output "routers" {
-  sensitive   = true
-  description = "Keyed resource identifiers/settings; no authentication secrets are exported."
+output "router" {
+  sensitive = true
   value = {
-    for k, v in google_compute_router.this : k => {
-      id        = v.id
-      name      = v.name
-      self_link = v.self_link
-      project   = v.project
-      region    = v.region
-      network   = v.network
-      asn       = try(v.bgp[0].asn, null)
-    }
-  }
-}
-output "interfaces" {
-  sensitive   = true
-  description = "Keyed resource identifiers/settings; no authentication secrets are exported."
-  value = {
-    for k, v in google_compute_router_interface.this : k => {
-      id                      = v.id
-      name                    = v.name
-      router                  = v.router
-      vpn_tunnel              = v.vpn_tunnel
-      interconnect_attachment = v.interconnect_attachment
-      project                 = v.project
-      region                  = v.region
-      ip_range                = v.ip_range
-      ip_version              = v.ip_version
-    }
-  }
-}
-output "peers" {
-  sensitive   = true
-  description = "Keyed resource identifiers/settings; no authentication secrets are exported."
-  value = {
-    for k, v in google_compute_router_peer.this : k => {
-      id              = v.id
-      name            = v.name
-      router          = v.router
-      project         = v.project
-      region          = v.region
-      interface       = v.interface
-      peer_asn        = v.peer_asn
-      peer_ip_address = v.peer_ip_address
-    }
+    id        = google_compute_router.this.id
+    name      = google_compute_router.this.name
+    self_link = google_compute_router.this.self_link
+    project   = google_compute_router.this.project
+    region    = google_compute_router.this.region
+    network   = google_compute_router.this.network
+    asn       = try(google_compute_router.this.bgp[0].asn, null)
   }
 }

@@ -1,137 +1,59 @@
 environment = "prod"
 
 project = "project-a"
-region  = "europe-west1"
 
-routers = {
-  a = {
-    name    = "atlas"
-    project = "project-a"
-    network = "projects/project-a/global/networks/vpc-a"
-    bgp = {
-      asn = 65001
-    }
-  }
-  b = {
-    name    = "orion"
-    project = "project-b"
-    network = "projects/project-b/global/networks/vpc-b"
-    bgp = {
-      asn = 65002
-    }
+region = "europe-west1"
+
+router_a = {
+  name    = "atlas"
+  project = "project-a"
+  network = "projects/project-a/global/networks/atlas"
+  bgp = {
+    asn = 65001
   }
 }
 
-gateways = {
-  a = {
-    name    = "atlas"
-    project = "project-a"
-    network = "projects/project-a/global/networks/vpc-a"
-  }
-  b = {
-    name    = "orion"
-    project = "project-b"
-    network = "projects/project-b/global/networks/vpc-b"
+gateway_a = {
+  name    = "atlas"
+  project = "project-a"
+  network = "projects/project-a/global/networks/atlas"
+}
+
+router_b = {
+  name    = "orion"
+  project = "project-b"
+  network = "projects/project-b/global/networks/orion"
+  bgp = {
+    asn = 65002
   }
 }
 
-tunnels = {
-  a_primary = {
-    name                  = "to-orion-primary"
-    gateway_key           = "a"
-    peer_gateway_key      = "b"
-    vpn_gateway_interface = 0
-    secret_key            = "primary"
+gateway_b = {
+  name    = "orion"
+  project = "project-b"
+  network = "projects/project-b/global/networks/orion"
+}
+
+links = {
+  primary = {
+    interface  = 0
+    name_a     = "to-orion-primary"
+    name_b     = "to-atlas-primary"
+    ip_range_a = "169.254.10.1/30"
+    ip_range_b = "169.254.10.2/30"
   }
-  a_secondary = {
-    name                  = "to-orion-secondary"
-    gateway_key           = "a"
-    peer_gateway_key      = "b"
-    vpn_gateway_interface = 1
-    secret_key            = "secondary"
-  }
-  b_primary = {
-    name                  = "to-atlas-primary"
-    gateway_key           = "b"
-    peer_gateway_key      = "a"
-    vpn_gateway_interface = 0
-    secret_key            = "primary"
-  }
-  b_secondary = {
-    name                  = "to-atlas-secondary"
-    gateway_key           = "b"
-    peer_gateway_key      = "a"
-    vpn_gateway_interface = 1
-    secret_key            = "secondary"
+  secondary = {
+    interface  = 1
+    name_a     = "to-orion-secondary"
+    name_b     = "to-atlas-secondary"
+    ip_range_a = "169.254.11.1/30"
+    ip_range_b = "169.254.11.2/30"
   }
 }
 
-tunnel_router_keys = {
-  a_primary   = "a"
-  a_secondary = "a"
-  b_primary   = "b"
-  b_secondary = "b"
+shared_secrets = {
+  primary   = "replace-primary"
+  secondary = "replace-secondary"
 }
 
-interfaces = {
-  a_primary = {
-    name       = "to-orion-primary"
-    router_key = "a"
-    ip_range   = "169.254.10.1/30"
-  }
-  a_secondary = {
-    name       = "to-orion-secondary"
-    router_key = "a"
-    ip_range   = "169.254.11.1/30"
-  }
-  b_primary = {
-    name       = "to-atlas-primary"
-    router_key = "b"
-    ip_range   = "169.254.10.2/30"
-  }
-  b_secondary = {
-    name       = "to-atlas-secondary"
-    router_key = "b"
-    ip_range   = "169.254.11.2/30"
-  }
-}
-
-interface_tunnel_keys = {
-  a_primary   = "a_primary"
-  a_secondary = "a_secondary"
-  b_primary   = "b_primary"
-  b_secondary = "b_secondary"
-}
-
-peers = {
-  a_primary = {
-    name            = "to-orion-primary"
-    router_key      = "a"
-    interface_key   = "a_primary"
-    peer_asn        = 65002
-    peer_ip_address = "169.254.10.2"
-  }
-  a_secondary = {
-    name            = "to-orion-secondary"
-    router_key      = "a"
-    interface_key   = "a_secondary"
-    peer_asn        = 65002
-    peer_ip_address = "169.254.11.2"
-  }
-  b_primary = {
-    name            = "to-atlas-primary"
-    router_key      = "b"
-    interface_key   = "b_primary"
-    peer_asn        = 65001
-    peer_ip_address = "169.254.10.1"
-  }
-  b_secondary = {
-    name            = "to-atlas-secondary"
-    router_key      = "b"
-    interface_key   = "b_secondary"
-    peer_asn        = 65001
-    peer_ip_address = "169.254.11.1"
-  }
-}
-
-# Supply shared_secrets securely with keys primary and secondary.
+write_only_shared_secrets = {}

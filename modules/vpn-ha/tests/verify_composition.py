@@ -11,7 +11,7 @@ MODULES=Path(__file__).resolve().parents[2]
 EXAMPLE=MODULES/'vpn-ha/examples/gcp-to-gcp'
 with tempfile.TemporaryDirectory(prefix='vpn-composition-') as directory:
  root=Path(directory)
- for name in ['router','vpn-ha']:
+ for name in ['router','vpn-ha','router-connection','vpn-tunnel']:
   target=root/name;target.mkdir()
   for src in (MODULES/name).glob('*.tf'):
    if src.name=='provider.tf':continue
@@ -20,9 +20,12 @@ with tempfile.TemporaryDirectory(prefix='vpn-composition-') as directory:
    (target/src.name).write_text(content)
  work=root/'composition';work.mkdir()
  for src in EXAMPLE.glob('*.tf'):
-  content=src.read_text().replace('"../../../router"','"../router"').replace('"../.."','"../vpn-ha"')
+  content=src.read_text()
+  for module_name in ['router','router-connection','vpn-tunnel']:
+   content=content.replace('"../../../'+module_name+'"','"../'+module_name+'"')
+  content=content.replace('"../.."','"../vpn-ha"')
   if src.name=='main.tf':
-   content=content.replace('module "routers" {','module "routers" {\n providers = {\n google = google\n }').replace('module "vpn" {','module "vpn" {\n providers = {\n google = google\n }').replace('module "routing" {','module "routing" {\n providers = {\n google = google\n }')
+   content=re.sub(r'(module "[^"]+" \{)',r'\1\n providers = {\n google = google\n }',content)
   (work/src.name).write_text(content)
  (work/'test-versions.tf').write_text('''terraform {
  required_providers {

@@ -8,7 +8,7 @@ resource "google_compute_vpn_tunnel" "this" {
   name                            = local.naming.tunnels[each.key]
   peer_external_gateway           = var.tunnels[each.key].peer_external_gateway
   peer_external_gateway_interface = var.tunnels[each.key].peer_external_gateway_interface
-  peer_gcp_gateway                = var.tunnels[each.key].peer_gateway_key != null ? google_compute_ha_vpn_gateway.this[var.tunnels[each.key].peer_gateway_key].self_link : var.tunnels[each.key].peer_gcp_gateway
+  peer_gcp_gateway                = var.tunnels[each.key].peer_gcp_gateway
   peer_ip                         = null
   project                         = local.tunnel_context[each.key].project
   region                          = local.tunnel_context[each.key].region
@@ -18,7 +18,7 @@ resource "google_compute_vpn_tunnel" "this" {
   shared_secret_wo                = var.tunnels[each.key].secret_mode == "write_only" ? lookup(var.write_only_shared_secrets, local.secret_keys[each.key], null) : null
   shared_secret_wo_version        = var.tunnels[each.key].shared_secret_wo_version
   target_vpn_gateway              = null
-  vpn_gateway                     = var.tunnels[each.key].gateway_key != null ? google_compute_ha_vpn_gateway.this[var.tunnels[each.key].gateway_key].self_link : var.tunnels[each.key].vpn_gateway
+  vpn_gateway                     = var.tunnels[each.key].vpn_gateway
   vpn_gateway_interface           = var.tunnels[each.key].vpn_gateway_interface
   dynamic "cipher_suite" {
     for_each = var.tunnels[each.key].cipher_suite == null ? [] : [var.tunnels[each.key].cipher_suite]

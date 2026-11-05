@@ -11,7 +11,7 @@ locals {
 }
 
 terraform {
-  source = "${get_repo_root()}//modules/vpn-ha"
+  source = "${get_repo_root()}//modules/router"
 }
 
 inputs = {
@@ -23,21 +23,21 @@ inputs = {
     local.project.inputs.labels,
     local.region.inputs.labels,
   )
-  gateways = {
-    main = {
-      name    = "atlas"
-      network = dependency.network.outputs.network.self_link
-      params = {
-        resource_manager_tags = {
-          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
-        }
+  router = {
+    name    = "atlas"
+    network = dependency.network.outputs.network.self_link
+    params = {
+      resource_manager_tags = {
+        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
       }
-      gateway_ip_version = "IPV4"
-      stack_type         = "IPV4_ONLY"
+    }
+    bgp = {
+      asn            = 65001
+      advertise_mode = "DEFAULT"
     }
   }
 }
 
 dependency "network" {
-  config_path = "../network/main"
+  config_path = "../../network/main"
 }

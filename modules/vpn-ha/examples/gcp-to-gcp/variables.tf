@@ -1,9 +1,3 @@
-variable "environment" {
-  type        = string
-  default     = null
-  description = "Environment context supplied by the caller. Does not modify explicit resource names."
-}
-
 variable "project" {
   type        = string
   nullable    = false
@@ -70,9 +64,14 @@ variable "compute_custom_endpoint" {
   description = "Optional Google provider compute_custom_endpoint setting."
 }
 
+variable "environment" {
+  type        = string
+  default     = null
+  description = "Environment context supplied by the caller. Does not modify explicit resource names."
+}
 
-variable "routers" {
-  type = map(object({
+variable "router_a" {
+  type = object({
     deletion_policy               = optional(string)
     description                   = optional(string)
     encrypted_interconnect_router = optional(bool)
@@ -104,96 +103,59 @@ variable "routers" {
       delete = optional(string)
       update = optional(string)
     }))
-  }))
-  default     = {}
+  })
   nullable    = false
-  description = "router configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
+  description = "One Cloud Router; the explicit name is used unchanged."
+  validation {
+    condition     = can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", var.router_a.name))
+    error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
+  }
 }
 
-variable "interfaces" {
-  type = map(object({
-    deletion_policy         = optional(string)
-    interconnect_attachment = optional(string)
-    ip_range                = optional(string)
-    ip_version              = optional(string)
-    name                    = string
-    private_ip_address      = optional(string)
-    project                 = optional(string)
-    redundant_interface     = optional(string)
-    region                  = optional(string)
-    router                  = optional(string)
-    subnetwork              = optional(string)
-    vpn_tunnel              = optional(string)
-    timeouts = optional(object({
-      create = optional(string)
-      delete = optional(string)
+variable "router_b" {
+  type = object({
+    deletion_policy               = optional(string)
+    description                   = optional(string)
+    encrypted_interconnect_router = optional(bool)
+    name                          = string
+    ncc_gateway                   = optional(string)
+    network                       = optional(string)
+    project                       = optional(string)
+    region                        = optional(string)
+    bgp = optional(object({
+      advertise_mode     = optional(string)
+      advertised_groups  = optional(list(string))
+      asn                = number
+      identifier_range   = optional(string)
+      keepalive_interval = optional(number)
+      advertised_ip_ranges = optional(map(object({
+        description = optional(string)
+        range       = string
+      })), {})
     }))
-    router_key = optional(string)
-  }))
-  default     = {}
-  nullable    = false
-  description = "router_interface configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
-}
-
-variable "peers" {
-  type = map(object({
-    advertise_mode                     = optional(string)
-    advertised_groups                  = optional(list(string))
-    advertised_route_priority          = optional(number)
-    custom_learned_route_priority      = optional(number)
-    deletion_policy                    = optional(string)
-    enable                             = optional(bool)
-    enable_ipv4                        = optional(bool)
-    enable_ipv6                        = optional(bool)
-    export_policies                    = optional(list(string))
-    import_policies                    = optional(list(string))
-    interface                          = optional(string)
-    ip_address                         = optional(string)
-    ipv4_nexthop_address               = optional(string)
-    ipv6_nexthop_address               = optional(string)
-    name                               = string
-    peer_asn                           = number
-    peer_ip_address                    = optional(string)
-    peer_ipv4_nexthop_address          = optional(string)
-    peer_ipv6_nexthop_address          = optional(string)
-    project                            = optional(string)
-    region                             = optional(string)
-    router                             = optional(string)
-    router_appliance_instance          = optional(string)
-    zero_advertised_route_priority     = optional(bool)
-    zero_custom_learned_route_priority = optional(bool)
-    advertised_ip_ranges = optional(map(object({
-      description = optional(string)
-      range       = string
-    })), {})
-    bfd = optional(object({
-      min_receive_interval        = optional(number)
-      min_transmit_interval       = optional(number)
-      multiplier                  = optional(number)
-      session_initialization_mode = string
-    }))
-    custom_learned_ip_ranges = optional(map(object({
-      range = string
-    })), {})
-    md5_authentication_key = optional(object({
+    md5_authentication_keys = optional(object({
       key  = string
       name = string
+    }))
+    params = optional(object({
+      resource_manager_tags = optional(map(string))
     }))
     timeouts = optional(object({
       create = optional(string)
       delete = optional(string)
       update = optional(string)
     }))
-    router_key    = optional(string)
-    interface_key = optional(string)
-  }))
-  default     = {}
+  })
   nullable    = false
-  description = "router_peer configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
+  description = "One Cloud Router; the explicit name is used unchanged."
+  validation {
+    condition     = can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", var.router_b.name))
+    error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
+  }
 }
 
-variable "gateways" {
-  type = map(object({
+variable "gateway_a" {
+  type = object({
     deletion_policy    = optional(string)
     description        = optional(string)
     gateway_ip_version = optional(string)
@@ -215,43 +177,26 @@ variable "gateways" {
       id                      = optional(number)
       interconnect_attachment = optional(string)
     })), {})
-  }))
-  default     = {}
+  })
   nullable    = false
-  description = "ha_vpn_gateway configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
+  description = "One HA VPN gateway; the explicit name is used unchanged."
+  validation {
+    condition     = can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", var.gateway_a.name))
+    error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
+  }
 }
 
-variable "tunnels" {
-  type = map(object({
-    deletion_policy                 = optional(string)
-    description                     = optional(string)
-    ike_version                     = optional(number, 2)
-    labels                          = optional(map(string))
-    local_traffic_selector          = optional(set(string))
-    name                            = string
-    peer_external_gateway           = optional(string)
-    peer_external_gateway_interface = optional(number)
-    peer_gcp_gateway                = optional(string)
-    project                         = optional(string)
-    region                          = optional(string)
-    remote_traffic_selector         = optional(set(string))
-    router                          = optional(string)
-    shared_secret_wo_version        = optional(string)
-    vpn_gateway                     = optional(string)
-    vpn_gateway_interface           = optional(number)
-    cipher_suite = optional(object({
-      phase1 = optional(object({
-        dh         = optional(list(string))
-        encryption = optional(list(string))
-        integrity  = optional(list(string))
-        prf        = optional(list(string))
-      }))
-      phase2 = optional(object({
-        encryption = optional(list(string))
-        integrity  = optional(list(string))
-        pfs        = optional(list(string))
-      }))
-    }))
+variable "gateway_b" {
+  type = object({
+    deletion_policy    = optional(string)
+    description        = optional(string)
+    gateway_ip_version = optional(string)
+    labels             = optional(map(string))
+    name               = string
+    network            = string
+    project            = optional(string)
+    region             = optional(string)
+    stack_type         = optional(string)
     params = optional(object({
       resource_manager_tags = optional(map(string))
     }))
@@ -260,14 +205,17 @@ variable "tunnels" {
       delete = optional(string)
       update = optional(string)
     }))
-    gateway_key      = optional(string)
-    peer_gateway_key = optional(string)
-    secret_key       = optional(string)
-    secret_mode      = optional(string, "standard")
-  }))
-  default     = {}
+    vpn_interfaces = optional(map(object({
+      id                      = optional(number)
+      interconnect_attachment = optional(string)
+    })), {})
+  })
   nullable    = false
-  description = "vpn_tunnel configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
+  description = "One HA VPN gateway; the explicit name is used unchanged."
+  validation {
+    condition     = can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", var.gateway_b.name))
+    error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
+  }
 }
 
 variable "shared_secrets" {
@@ -276,6 +224,10 @@ variable "shared_secrets" {
   nullable    = false
   sensitive   = true
   description = "PSKs for standard mode. Keys are selected by tunnel secret_key (or tunnel map key). Standard PSKs are stored in Terraform state."
+  validation {
+    condition     = alltrue([for secret in values(var.shared_secrets) : length(secret) > 0])
+    error_message = "PSKs must not be empty."
+  }
 }
 
 variable "write_only_shared_secrets" {
@@ -285,10 +237,19 @@ variable "write_only_shared_secrets" {
   sensitive   = true
   ephemeral   = true
   description = "Ephemeral PSKs for write_only mode; set shared_secret_wo_version on the tunnel and increment it for rotation."
+  validation {
+    condition     = alltrue([for secret in values(var.write_only_shared_secrets) : length(secret) > 0])
+    error_message = "PSKs must not be empty."
+  }
 }
-variable "tunnel_router_keys" {
-  type = map(string)
-}
-variable "interface_tunnel_keys" {
-  type = map(string)
+
+variable "links" {
+  type = map(object({
+    interface  = number
+    name_a     = string
+    name_b     = string
+    ip_range_a = string
+    ip_range_b = string
+  }))
+  nullable = false
 }

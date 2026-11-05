@@ -1,5 +1,5 @@
-variable "gateways" {
-  type = map(object({
+variable "gateway" {
+  type = object({
     deletion_policy    = optional(string)
     description        = optional(string)
     gateway_ip_version = optional(string)
@@ -21,12 +21,11 @@ variable "gateways" {
       id                      = optional(number)
       interconnect_attachment = optional(string)
     })), {})
-  }))
-  default     = {}
+  })
   nullable    = false
-  description = "ha_vpn_gateway configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
+  description = "One HA VPN gateway; the explicit name is used unchanged."
   validation {
-    condition     = alltrue([for v in values(var.gateways) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))])
+    condition     = can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", var.gateway.name))
     error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
   }
 }

@@ -37,10 +37,8 @@ variable "tunnels" {
       delete = optional(string)
       update = optional(string)
     }))
-    gateway_key      = optional(string)
-    peer_gateway_key = optional(string)
-    secret_key       = optional(string)
-    secret_mode      = optional(string, "standard")
+    secret_key  = optional(string)
+    secret_mode = optional(string, "standard")
   }))
   default     = {}
   nullable    = false
@@ -48,22 +46,6 @@ variable "tunnels" {
   validation {
     condition     = alltrue([for v in values(var.tunnels) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))])
     error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
-  }
-  validation {
-    condition     = alltrue([for v in values(var.tunnels) : (v.vpn_gateway != null) != (v.gateway_key != null)])
-    error_message = "Supply exactly one of vpn_gateway or gateway_key; Classic VPN gateways are not supported."
-  }
-  validation {
-    condition     = alltrue([for v in values(var.tunnels) : v.gateway_key == null ? true : contains(keys(var.gateways), v.gateway_key)])
-    error_message = "gateway_key must identify a gateway created by this module."
-  }
-  validation {
-    condition     = alltrue([for v in values(var.tunnels) : length([for x in [v.peer_gcp_gateway, v.peer_gateway_key, v.peer_external_gateway] : x if x != null]) == 1])
-    error_message = "Supply exactly one peer_gcp_gateway, peer_gateway_key or peer_external_gateway."
-  }
-  validation {
-    condition     = alltrue([for v in values(var.tunnels) : v.peer_gateway_key == null ? true : contains(keys(var.gateways), v.peer_gateway_key)])
-    error_message = "peer_gateway_key must identify a gateway created by this module."
   }
   validation {
     condition     = alltrue([for v in values(var.tunnels) : v.vpn_gateway_interface == null ? false : contains([0, 1], v.vpn_gateway_interface)])
@@ -96,9 +78,15 @@ variable "tunnels" {
     error_message = "peer_external_gateway_interface is required only for an external peer gateway."
   }
   validation {
-    condition = alltrue([for v in values(var.tunnels) :
-      v.gateway_key == null || v.peer_gateway_key == null || v.gateway_key != v.peer_gateway_key
-    ])
+    condition     = alltrue([for v in values(var.tunnels) : v.vpn_gateway != null])
+    error_message = "Every tunnel requires an existing HA gateway."
+  }
+  validation {
+    condition     = alltrue([for v in values(var.tunnels) : (v.peer_gcp_gateway != null) != (v.peer_external_gateway != null)])
+    error_message = "Supply exactly one peer_gcp_gateway or peer_external_gateway."
+  }
+  validation {
+    condition     = alltrue([for v in values(var.tunnels) : v.peer_gcp_gateway == null ? true : v.peer_gcp_gateway != v.vpn_gateway])
     error_message = "A tunnel cannot connect a gateway to itself."
   }
 }

@@ -51,17 +51,20 @@ Aktualne granice, których nie należy mieszać:
 | Moduł | Zasoby i zachowanie |
 |---|---|
 | `network` | Jedna VPC oraz mapa subnetów; bez VM, VPN, routerów, NAT i firewalli |
-| `router` | Mapy routerów, interfejsów i peerów BGP; działa również bez VPN |
-| `vpn-ha` | Mapy bram HA i tuneli; przyjmuje istniejące routery, nie tworzy ich |
+| `router` | Dokładnie jeden Cloud Router, wymagany obiekt router; bez interfejsów i peerów |
+| `vpn-ha` | Dokładnie jedna brama HA VPN, wymagany obiekt gateway; bez tuneli |
+| `router-connection` | Mapy interfejsów i peerów jednego istniejącego routera; router jako nazwa, bez tworzenia routera |
+| `vpn-tunnel` | Mapa tuneli między istniejącymi bramami; bez tworzenia bram i routerów |
 
-`router` z pustą mapą `routers` może konfigurować interfejsy/BGP istniejącego
-routera. Nie oznacza to przejęcia jego własności w stanie. Nie twórz osobnego
-modułu router-bgp. Nowe funkcje oddzielaj według odpowiedzialności, nie według
-każdego pojedynczego resource. Nie dodawaj backendu ani konfiguracji env do modułu.
-
-Moduł network pozostaje atomowy: jedna VPC, wejście network jako obiekt i mapa
-subnetworks. Wiele VPC realizuj przez osobne jednostki Terragrunt
-network/<nazwa-jednostki>/, nie przez zmianę tego modułu na mapę sieci.
+Network, router i brama VPN są atomowe: jeden zasób główny na wywołanie modułu.
+Nie stosuj do nich map, count, for_each ani opcjonalnego trybu tworzenia zera zasobów.
+Resource ma adres this, a output jest pojedynczym obiektem network/router/gateway.
+Wiele zasobów głównych realizuj przez osobne katalogi Terragrunt
+network/<nazwa-jednostki>/, router/<nazwa-jednostki>/ i vpn-gateway/<nazwa-jednostki>/.
+Mapy pozostają dla subnetów, tuneli, interfejsów, peerów i bloków podrzędnych.
+Konfiguracja interfejsów/BGP jest osobna, ponieważ zależy od istniejących tuneli;
+nie dodawaj jej do tworzenia routera, tworząc cykl router → tunel → router.
+Nie dodawaj backendu ani konfiguracji środowiska do modułów.
 
 ## Argumenty i typowanie
 
@@ -129,9 +132,10 @@ wartości/protokołów i bloków, których kolejność ma znaczenie. Mapa nie us
 wymiany wymuszonej zmianą niezmiennego argumentu providera.
 
 Domyślnie wiąż zasoby deklaratywnie, np. subnet → self_link utworzonej VPC.
-Zachowaj jawne nadpisania i udokumentuj pierwszeństwo. Aktualny router korzysta
-z `router_key`/`interface_key` dla zasobów lokalnych lub `router`/`interface`
-dla nazw istniejących zasobów; nie pozwalaj na jednoczesne podanie obu wariantów.
+Zachowaj jawne nadpisania i udokumentuj pierwszeństwo. Moduł router-connection
+przyjmuje jedną nazwę routera; peer wybiera interface_key z lokalnej mapy albo
+interface jako istniejącą nazwę, nigdy oba. Moduł vpn-tunnel przyjmuje referencje
+vpn_gateway i peer_gcp_gateway albo peer_external_gateway, bez gateway_key.
 Nie konstruuj URL-i zamiast referencji do zarządzanych zasobów.
 
 ## Format i sekrety
@@ -169,7 +173,7 @@ Nie dodawaj demonstracyjnych środowisk ani podłączenia do env poza zakresem z
 Nie twórz README.md; dokumentację konwencji utrzymuj w lokalnych skillach AI/.
 
 Uruchom fmt, init z wyłączonym backendem, validate i testy zachowania na mockach:
-minimum/pusta mapa, powiązania i nadpisania, opcjonalne bloki, błędne wejścia,
+minimalny wymagany obiekt dla modułu atomowego, pusta mapa dla kolekcji, powiązania i nadpisania, opcjonalne bloki, błędne wejścia,
 zachowanie ID po dodaniu/usunięciu innego klucza. Nie używaj realnego apply jako testu.
 Po testach wykonaj osobną kontrolę kompletności dla każdego rodzaju zasobu.
 Porównaj aktualny schemat przypiętej wersji providera z typami wejść i przypisaniami
@@ -195,3 +199,7 @@ Przy zmianie kontraktu zaktualizuj wywołania w env, przykłady, testy i dokumen
 Nie zmieniaj przy tym nazw zasobów, kluczy map lub stanów bez potrzeby. Raportuj
 wykonane kontrole i ograniczenia: mocki nie dowodzą zestawienia VPN ani dostępu
 sieciowego. Pisanie modułu nie upoważnia do wdrożenia infrastruktury.
+
+Przy migracji starych jednostek main zachowaj klucze backendu i moved z
+this["main"] do this dla routera/bramy. Inne historyczne klucze wymagają osobnej
+migracji; nie zakładaj, że moved dla main obsługuje całą dawną mapę.

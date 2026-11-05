@@ -1,9 +1,3 @@
-variable "environment" {
-  type        = string
-  default     = null
-  description = "Environment context supplied by the caller. Does not modify explicit resource names."
-}
-
 variable "project" {
   type        = string
   nullable    = false
@@ -70,9 +64,14 @@ variable "compute_custom_endpoint" {
   description = "Optional Google provider compute_custom_endpoint setting."
 }
 
+variable "environment" {
+  type        = string
+  default     = null
+  description = "Environment context supplied by the caller. Does not modify explicit resource names."
+}
 
-variable "routers" {
-  type = map(object({
+variable "router" {
+  type = object({
     deletion_policy               = optional(string)
     description                   = optional(string)
     encrypted_interconnect_router = optional(bool)
@@ -104,8 +103,11 @@ variable "routers" {
       delete = optional(string)
       update = optional(string)
     }))
-  }))
-  default     = {}
+  })
   nullable    = false
-  description = "router configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
+  description = "One Cloud Router; the explicit name is used unchanged."
+  validation {
+    condition     = can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", var.router.name))
+    error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
+  }
 }

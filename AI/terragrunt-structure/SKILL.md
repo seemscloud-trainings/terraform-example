@@ -79,8 +79,8 @@ env/<środowisko>/
         ├── region.hcl
         └── networking/
             ├── network/<nazwa-jednostki>/terragrunt.hcl
-            ├── router/terragrunt.hcl
-            ├── vpn-gateway/terragrunt.hcl
+            ├── router/<nazwa-jednostki>/terragrunt.hcl
+            ├── vpn-gateway/<nazwa-jednostki>/terragrunt.hcl
             └── connections/to-<peer-region>/
                 ├── connection.hcl
                 ├── tunnels/terragrunt.hcl
@@ -89,6 +89,7 @@ env/<środowisko>/
 
 Nie przywracaj pojedynczego regionalnego `tunnel` ani `router-config` zakładającego
 jednego peera. Sieć, router i brama są współdzielone przez połączenia regionu.
+Każdy router i brama również ma osobną jednostkę oraz stan.
 Każda VPC ma osobną atomową jednostkę network/<nazwa-jednostki>/ i osobny stan.
 Nazwa katalogu jest stabilnym identyfikatorem jednostki, np. main; nie musi być
 nazwą zasobu GCP, np. atlas. Nie synchronizuj tych nazw automatycznie.
@@ -200,21 +201,24 @@ Przykład zależności lokalnej w jednostce tunnels:
 
 ```hcl
 dependency "gateway" {
-  config_path = "../../../vpn-gateway"
+  config_path = "../../../vpn-gateway/main"
 }
 ```
 
 Jej wynik jest używany w obiekcie tunelu jako
-`vpn_gateway = dependency.gateway.outputs.gateways.main.self_link`.
-Zweryfikuj istnienie ścieżki, nazwę outputu i klucz mapy w module.
+`vpn_gateway = dependency.gateway.outputs.gateway.self_link`.
+Zweryfikuj istnienie ścieżki i nazwę outputu. Router/brama mają pojedyncze outputy
+router i gateway — bez mapy oraz bez .main.
 
 ## Składanie modułów bez cyklu
 
 Aktualna kolejność: network → router / vpn-gateway → tunnels → bgp.
-`router` tworzy Cloud Router, `vpn-ha` otrzymuje jego referencję, a jednostka bgp
-używa ponownie MODUŁU router z pustą mapą routers, konfigurując tylko interfejsy
-oraz peery danego połączenia. Nie tworzy drugiego routera ani drugiego właściciela
-routera w stanie. Nie dodawaj modułu router-bgp.
+Jednostka router/<nazwa>/ używa modułu router i tworzy dokładnie jeden router.
+Jednostka vpn-gateway/<nazwa>/ używa vpn-ha i tworzy dokładnie jedną bramę.
+Tunnels używa vpn-tunnel, a bgp używa router-connection dla istniejącego routera.
+Żaden z tych modułów nie tworzy ponownie zasobów należących do innych jednostek.
+Przekazuj router = { ... } i gateway = { ... }, nigdy routers/gateways jako mapy.
+Wiele routerów lub bram oznacza więcej katalogów jednostek, nie więcej wpisów mapy.
 
 Obie strony tunelu potrzebują swoich bram, zgodnych par interfejsów, pasujących
 PSK i wzajemnej adresacji BGP. Sprawdzaj ASN, CIDR i nazwy także między wieloma
@@ -222,10 +226,9 @@ połączeniami na tym samym routerze. Graf dependency musi pozostać acykliczny.
 
 ## Ograniczenia obecnego env
 
-Moduły router i vpn-ha obsługują mapy, lecz obecne wywołania env wybierają
-router i bramę przez klucz main. Nie przedstawiaj tego jako gotowej obsługi
-wielu niezależnych bram/routerów na połączenie. Rozszerzenie wymaga jawnego
-wyboru jednostki i klucza w konfiguracji połączenia, nie kopiowania main wszędzie.
+Obecne połączenia wskazują katalogi router/main i vpn-gateway/main. Nowe
+połączenie może wskazać inną jednostkę. Nie zakładaj jednej bramy/routera na region;
+wybieraj odpowiednią ścieżkę dependency i korzystaj z jej pojedynczego outputu.
 Adresy peer_ip_address są obecnie jawne w connection.hcl. Sprawdzaj je względem
 ip_range po drugiej stronie i unikaj kolizji. Nie twierdź, że pochodzą z outputs.
 Nie dodawaj wzajemnych dependency pomiędzy jednostkami bgp: tworzą cykl.
@@ -282,3 +285,8 @@ sprawdź, że nowe połączenie nie zmienia starego i nie duplikuje lokalnej bra
 Przygotowanie kodu nie jest poleceniem wdrożenia: bez odpowiedniej instrukcji nie
 uruchamiaj realnego plan/apply/destroy. Raportuj faktyczne kontrole, ograniczenia
 oraz ewentualne brakujące dane do przyszłego wdrożenia.
+
+Router/main oraz vpn-gateway/main zachowują stare klucze stanu sprzed zmiany
+katalogów. Moduły zawierają moved this["main"] → this. Przeniesienie kodu tuneli
+i BGP do osobnych modułów zachowuje ich dotychczasowe adresy zasobów i backendy.
+Nie uruchamiaj migracji na żywo podczas samej zmiany struktury kodu.

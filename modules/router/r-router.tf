@@ -1,15 +1,14 @@
 resource "google_compute_router" "this" {
-  for_each                      = nonsensitive(toset(keys(var.routers)))
-  deletion_policy               = var.routers[each.key].deletion_policy
-  description                   = var.routers[each.key].description
-  encrypted_interconnect_router = var.routers[each.key].encrypted_interconnect_router
-  name                          = local.naming.routers[each.key]
-  ncc_gateway                   = var.routers[each.key].ncc_gateway
-  network                       = var.routers[each.key].network
-  project                       = var.routers[each.key].project != null ? var.routers[each.key].project : var.project
-  region                        = var.routers[each.key].region != null ? var.routers[each.key].region : var.region
+  deletion_policy               = var.router.deletion_policy
+  description                   = var.router.description
+  encrypted_interconnect_router = var.router.encrypted_interconnect_router
+  name                          = local.naming.router
+  ncc_gateway                   = var.router.ncc_gateway
+  network                       = var.router.network
+  project                       = var.router.project != null ? var.router.project : var.project
+  region                        = var.router.region != null ? var.router.region : var.region
   dynamic "bgp" {
-    for_each = var.routers[each.key].bgp == null ? [] : [var.routers[each.key].bgp]
+    for_each = var.router.bgp == null ? [] : [var.router.bgp]
     iterator = item_bgp
     content {
       advertise_mode     = item_bgp.value.advertise_mode
@@ -28,7 +27,7 @@ resource "google_compute_router" "this" {
     }
   }
   dynamic "md5_authentication_keys" {
-    for_each = var.routers[each.key].md5_authentication_keys == null ? [] : [var.routers[each.key].md5_authentication_keys]
+    for_each = var.router.md5_authentication_keys == null ? [] : [var.router.md5_authentication_keys]
     iterator = item_md5_authentication_keys
     content {
       key  = sensitive(item_md5_authentication_keys.value.key)
@@ -36,14 +35,14 @@ resource "google_compute_router" "this" {
     }
   }
   dynamic "params" {
-    for_each = var.routers[each.key].params == null ? [] : [var.routers[each.key].params]
+    for_each = var.router.params == null ? [] : [var.router.params]
     iterator = item_params
     content {
       resource_manager_tags = item_params.value.resource_manager_tags
     }
   }
   dynamic "timeouts" {
-    for_each = var.routers[each.key].timeouts == null ? [] : [var.routers[each.key].timeouts]
+    for_each = var.router.timeouts == null ? [] : [var.router.timeouts]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

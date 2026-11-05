@@ -12,9 +12,9 @@ module "router" {
   request_reason                        = var.request_reason
   universe_domain                       = var.universe_domain
   compute_custom_endpoint               = var.compute_custom_endpoint
-  routers                               = var.routers
+  router                                = var.router
 }
-output "routers" {
-  value     = module.router.routers
+output "router" {
+  value     = module.router.router
   sensitive = true
 }

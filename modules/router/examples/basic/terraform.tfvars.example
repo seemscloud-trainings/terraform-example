@@ -1,10 +1,10 @@
 environment = "prod"
 
 project = "project-a"
-region  = "europe-west1"
-routers = {
-  application = {
-    name    = "application"
-    network = "projects/project-a/global/networks/application"
-  }
+
+region = "europe-west1"
+
+router = {
+  name    = "application"
+  network = "projects/project-a/global/networks/application"
 }
