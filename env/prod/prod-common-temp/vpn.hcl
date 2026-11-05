@@ -1,40 +1,65 @@
 locals {
   sites = {
     europe-west1 = {
-      peer_region  = "us-east1"
-      network_name = "vpn-eu-vpc"
-      subnet_name  = "vpn-eu-subnet"
-      cidr         = "10.80.0.0/24"
-      router_name  = "vpn-eu-router"
-      gateway_name = "vpn-eu-gateway"
       asn          = 65001
-      tunnels = {
-        primary = {
-          name      = "vpn-eu-primary", interface_name = "vpn-eu-primary-if", peer_name = "vpn-eu-primary-peer"
-          interface = 0, ip_range = "169.254.10.1/30", peer_ip_address = "169.254.10.2"
-        }
-        secondary = {
-          name      = "vpn-eu-secondary", interface_name = "vpn-eu-secondary-if", peer_name = "vpn-eu-secondary-peer"
-          interface = 1, ip_range = "169.254.11.1/30", peer_ip_address = "169.254.11.2"
-        }
-      }
+      cidr         = "10.80.0.0/24"
+      gateway_name = "vpn-eu-gateway"
+      network_name = "vpn-eu-vpc"
+      router_name  = "vpn-eu-router"
+      subnet_name  = "vpn-eu-subnet"
     }
     us-east1 = {
-      peer_region  = "europe-west1"
-      network_name = "vpn-us-vpc"
-      subnet_name  = "vpn-us-subnet"
-      cidr         = "10.81.0.0/24"
-      router_name  = "vpn-us-router"
-      gateway_name = "vpn-us-gateway"
       asn          = 65002
-      tunnels = {
-        primary = {
-          name      = "vpn-us-primary", interface_name = "vpn-us-primary-if", peer_name = "vpn-us-primary-peer"
-          interface = 0, ip_range = "169.254.10.2/30", peer_ip_address = "169.254.10.1"
+      cidr         = "10.81.0.0/24"
+      gateway_name = "vpn-us-gateway"
+      network_name = "vpn-us-vpc"
+      router_name  = "vpn-us-router"
+      subnet_name  = "vpn-us-subnet"
+    }
+  }
+  connections = {
+    eu-us = {
+      secrets_file = "vpn.secrets.tfvars"
+      endpoints = {
+        europe-west1 = {
+          tunnels = {
+            primary = {
+              interface       = 0
+              interface_name  = "vpn-eu-primary-if"
+              ip_range        = "169.254.10.1/30"
+              name            = "vpn-eu-primary"
+              peer_ip_address = "169.254.10.2"
+              peer_name       = "vpn-eu-primary-peer"
+            }
+            secondary = {
+              interface       = 1
+              interface_name  = "vpn-eu-secondary-if"
+              ip_range        = "169.254.11.1/30"
+              name            = "vpn-eu-secondary"
+              peer_ip_address = "169.254.11.2"
+              peer_name       = "vpn-eu-secondary-peer"
+            }
+          }
         }
-        secondary = {
-          name      = "vpn-us-secondary", interface_name = "vpn-us-secondary-if", peer_name = "vpn-us-secondary-peer"
-          interface = 1, ip_range = "169.254.11.2/30", peer_ip_address = "169.254.11.1"
+        us-east1 = {
+          tunnels = {
+            primary = {
+              interface       = 0
+              interface_name  = "vpn-us-primary-if"
+              ip_range        = "169.254.10.2/30"
+              name            = "vpn-us-primary"
+              peer_ip_address = "169.254.10.1"
+              peer_name       = "vpn-us-primary-peer"
+            }
+            secondary = {
+              interface       = 1
+              interface_name  = "vpn-us-secondary-if"
+              ip_range        = "169.254.11.2/30"
+              name            = "vpn-us-secondary"
+              peer_ip_address = "169.254.11.1"
+              peer_name       = "vpn-us-secondary-peer"
+            }
+          }
         }
       }
     }

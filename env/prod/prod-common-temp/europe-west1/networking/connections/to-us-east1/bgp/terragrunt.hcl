@@ -5,11 +5,15 @@ include "root" {
 terraform_binary = "terraform"
 
 locals {
-  project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
-  region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-  vpn     = read_terragrunt_config(find_in_parent_folders("vpn.hcl"))
-  site    = local.vpn.locals.sites[local.region.inputs.region_name]
-  peer    = local.vpn.locals.sites[local.site.peer_region]
+  project           = read_terragrunt_config(find_in_parent_folders("project.hcl"))
+  region            = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  vpn               = read_terragrunt_config(find_in_parent_folders("vpn.hcl"))
+  connection_config = read_terragrunt_config(find_in_parent_folders("connection.hcl"))
+  connection        = local.vpn.locals.connections[local.connection_config.locals.connection_key]
+  site              = local.vpn.locals.sites[local.region.inputs.region_name]
+  endpoint          = local.connection.endpoints[local.region.inputs.region_name]
+  peer_region       = one([for region in keys(local.connection.endpoints) : region if region != local.region.inputs.region_name])
+  peer              = local.vpn.locals.sites[local.peer_region]
   provider_config = {
     project = local.project.inputs.project_id
     region  = local.region.inputs.region_name
@@ -21,7 +25,7 @@ terraform {
 }
 
 dependency "router" {
-  config_path                             = "../router"
+  config_path                             = "../../../router"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
   mock_outputs_allowed_terraform_commands = ["validate", "render"]
   mock_outputs = {
@@ -35,11 +39,11 @@ dependency "router" {
 }
 
 dependency "tunnel" {
-  config_path                             = "../tunnel"
+  config_path                             = "../tunnels"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
   mock_outputs_allowed_terraform_commands = ["validate", "render"]
   mock_outputs = {
-    tunnels = { for key, tunnel in local.site.tunnels : key => {
+    tunnels = { for key, tunnel in local.endpoint.tunnels : key => {
       name      = tunnel.name
       self_link = "https://www.googleapis.com/compute/v1/projects/${local.project.inputs.project_id}/regions/${local.region.inputs.region_name}/vpnTunnels/${tunnel.name}"
     } }
@@ -49,13 +53,13 @@ dependency "tunnel" {
 inputs = {
   provider_config = local.provider_config
   # No routers map: this unit owns only interfaces and peers on the existing router.
-  interfaces = { for key, tunnel in local.site.tunnels : key => {
+  interfaces = { for key, tunnel in local.endpoint.tunnels : key => {
     name       = tunnel.interface_name
     router     = dependency.router.outputs.routers.main.name
     vpn_tunnel = dependency.tunnel.outputs.tunnels[key].self_link
     ip_range   = tunnel.ip_range
   } }
-  peers = { for key, tunnel in local.site.tunnels : key => {
+  peers = { for key, tunnel in local.endpoint.tunnels : key => {
     name            = tunnel.peer_name
     router          = dependency.router.outputs.routers.main.name
     interface_key   = key

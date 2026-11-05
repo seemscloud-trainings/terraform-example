@@ -9,7 +9,6 @@ locals {
   region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
   vpn     = read_terragrunt_config(find_in_parent_folders("vpn.hcl"))
   site    = local.vpn.locals.sites[local.region.inputs.region_name]
-  peer    = local.vpn.locals.sites[local.site.peer_region]
   provider_config = {
     project = local.project.inputs.project_id
     region  = local.region.inputs.region_name

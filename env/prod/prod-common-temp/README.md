@@ -1,64 +1,102 @@
-# EU ↔ US HA VPN
+# Regional networking and HA VPN connections
 
-Prepared configuration only. This change does not deploy resources.
+Prepared configuration only; editing these files does not deploy resources.
 
-| Side | Region | VPC | Subnet CIDR | Router ASN |
+| Site | Region | VPC | Subnet | ASN |
 |---|---|---|---|---|
 | EU | europe-west1 | vpn-eu-vpc | 10.80.0.0/24 | 65001 |
 | US | us-east1 | vpn-us-vpc | 10.81.0.0/24 | 65002 |
 
-Both VPCs belong to `prod-common-temp`. Names, ranges, ASNs and tunnel parameters
-are in `vpn.hcl`. Each region contains the same five Terragrunt units under `networking/`:
+Each region owns one shared network, router and gateway. Connections are named
+by their peer, rather than assuming that the region has only one peer:
 
-- `network`: VPC and subnet, using `modules/network`.
-- `router`: creates the local Cloud Router, using `modules/router`.
-- `vpn-gateway`: creates the local HA gateway, using `modules/vpn-ha`.
-- `tunnel`: creates two local endpoints, using the existing router and both HA gateways.
-- `router-config`: creates interfaces and peers on the existing router, using
-  `modules/router` with an empty routers map. It never manages router creation.
+```text
+europe-west1/
+├── region.hcl
+└── networking/
+    ├── network/
+    ├── router/
+    ├── vpn-gateway/
+    └── connections/
+        └── to-us-east1/
+            ├── connection.hcl
+            ├── tunnels/
+            └── bgp/
+```
 
-Dependency order is network → router/gateway → tunnels → router-config. Each
-tunnel unit depends on both gateway units; neither gateway depends on tunnels.
-There is no Terragrunt dependency cycle. The two routers are each owned by only
-one state. Region-specific names keep the two global VPC names distinct.
+`us-east1` has the reciprocal `connections/to-europe-west1/` directory.
+`connection.hcl` selects an entry from `locals.connections` in `vpn.hcl`.
+`locals.sites` holds shared regional properties. Each connection contains its
+own two endpoints, tunnel names, BGP addresses and secret-file location.
 
-There are two IPsec connections (four tunnel endpoint resources), with HA
-interfaces 0 ↔ 0 and 1 ↔ 1. BGP uses 169.254.10.0/30 and 169.254.11.0/30, with EU
-on .1 and US on .2. Gateway external IPs are allocated by GCP when gateways are
-created. No pre-reserved public address or external VPN gateway is required.
+## Ownership and dependencies
+
+- `network` uses the network module to own the regional site's VPC and subnet.
+  GCP VPCs themselves are global resources; the region directory groups this site.
+- `router` owns the site's Cloud Router.
+- `vpn-gateway` owns the site's HA gateway.
+- Each connection's `tunnels` owns only that endpoint's two VPN tunnels and
+  depends on the local router and the local/peer gateway.
+- Each connection's `bgp` uses the router module with no routers map. It owns
+  only that connection's interfaces and BGP peers on the shared local router.
+
+The graph is network → router/gateway → connection tunnels → connection BGP.
+Gateways never depend on connections, so adding a peer does not introduce a
+cycle or duplicate ownership of routers. Resource names must be unique within
+their GCP scope, including interface/peer names across connections on one router.
+
+## Add another connection
+
+1. Add a site to `vpn.hcl` only if the region does not exist yet. Give it a
+   non-overlapping subnet range and suitable ASN, and create its `region.hcl`
+   plus the three shared networking units. Reuse existing regional units.
+2. Add a named connection, e.g. `eu-asia`, to `locals.connections`, with exactly
+   two regional endpoints. Give it explicit unique tunnel/interface/peer names,
+   two unused BGP /30 networks and reciprocal local/peer IPs. Interface pairs
+   remain 0 ↔ 0 and 1 ↔ 1.
+3. In both endpoint regions add `connections/to-<peer-region>/`. Copy the generic
+   `tunnels` and `bgp` unit files and set the connection key in `connection.hcl`.
+   Their paths, peer selection and inputs are derived from context; no module
+   modification or duplicate regional router/gateway is needed.
+4. Point that connection at its own ignored secrets file, e.g.
+   `eu-asia.secrets.tfvars`. It must contain matching `primary`/`secondary` PSKs
+   for the two endpoints. Decide which region pairs should connect; adding a
+   region does not silently create a full mesh.
 
 ## State and secrets
 
-`root.hcl` uses the existing GCS bucket selected by `TF_STATE_BUCKET`; bucket
-creation is disabled. Every unit has a separate prefix. The grouping directory `networking/` is omitted
-from the prefix to preserve the existing state locations.
+`root.hcl` uses the existing bucket selected by `TF_STATE_BUCKET` and does not
+create it. Every connection/unit has a separate state prefix. An explicit map
+preserves the four original EU-US tunnel/BGP state locations after the folder
+move. New connections use their own path-derived state keys; never add them to
+those legacy aliases or point multiple units at the same state.
 
-From the repository root, copy `vpn.secrets.tfvars.example` to
-`vpn.secrets.tfvars` and replace both sample PSKs with strong random secrets.
-The resulting file is ignored by Git. Both regions use the same file, so each
-pair of tunnel endpoints receives matching secrets. `VPN_SECRETS_FILE` can
-instead specify an absolute path to another private tfvars file.
+The existing `eu-us` connection still uses `vpn.secrets.tfvars` at repository
+root. Copy `vpn.secrets.tfvars.example` there and replace both placeholders.
+`*.secrets.tfvars` is ignored by Git. Standard PSKs are stored in Terraform state,
+so access to the state backend must be protected.
 
-The `tunnel` units require that file for Terraform operations accepting variables.
-They do not create or invent secret values. Standard-mode PSKs are stored in
-Terraform state; protect access to the state bucket.
+`connections.<key>.secrets_file` is relative to repository root. Optional
+`VPN_SECRETS_FILE` overrides the path for a particular invocation; avoid setting
+that globally when running several connections that use different PSK files.
 
-## Offline checks
-
-From the repository root:
+## Validation
 
 ```sh
 TF_STATE_BUCKET=validation-only-not-used TG_VALIDATE_ONLY=true terragrunt hcl validate
 TF_STATE_BUCKET=validation-only-not-used TG_VALIDATE_ONLY=true \
-  terragrunt --working-dir env/prod/prod-common-temp/europe-west1/networking/tunnel render --format hcl
+  terragrunt --working-dir env/prod/prod-common-temp/europe-west1/networking/connections/to-us-east1/tunnels render --format hcl
 ```
 
-Validation mocks are allowed only for validate/render, never plan/apply/destroy.
-Unset `TG_VALIDATE_ONLY` before real infrastructure operations. Initial real
-planning requires outputs from prerequisite units; mocks must not be used as
-real endpoint values.
+Mocks are allowed for validate/render only, not plan/apply/destroy. Unset
+`TG_VALIDATE_ONLY` before infrastructure operations. Initial real planning needs
+outputs from the prerequisite units.
 
-Workload ingress firewall rules, test VMs and connectivity tests are intentionally
-not defined here. BGP/IPsec setup does not itself allow application traffic through
-VPC firewalls. These will be added separately if requested. Existing training
-networks, VMs and application deployments are not part of these states.
+Verified: existing EU-US inputs, state prefixes and secret-file paths are
+unchanged; all ten dependencies resolve without cycles. An isolated three-site,
+two-connection scenario has seventeen units with distinct state prefixes and
+shared regional infrastructure. That extra site was not added to this environment.
+
+Workload firewall rules and test VMs are not defined here. IPsec/BGP establishment
+does not itself permit workload traffic through VPC firewalls. Existing training
+networks and application deployments are outside these states.
