@@ -1,0 +1,25 @@
+provider_config = {
+  project = "prod-common-temp"
+  region  = "europe-west1"
+}
+
+network = {
+  name         = "training-vpc"
+  routing_mode = "REGIONAL"
+}
+
+subnetworks = {
+  application = {
+    name                     = "training-application"
+    ip_cidr_range            = "10.10.1.0/24"
+    private_ip_google_access = true
+    secondary_ip_range = {
+      pods     = { range_name = "pods", ip_cidr_range = "10.20.0.0/20" }
+      services = { range_name = "services", ip_cidr_range = "10.21.0.0/24" }
+    }
+  }
+  database = {
+    name          = "training-database"
+    ip_cidr_range = "10.10.2.0/24"
+  }
+}
