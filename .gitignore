@@ -5,3 +5,7 @@
 *.tfstate.*
 *.tfplan
 crash.log
+
+# HA VPN PSKs, shared by both regions. Never commit real keys.
+vpn.secrets.tfvars
+*.secrets.tfvars
