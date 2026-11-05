@@ -256,3 +256,13 @@ Boot disk: wybierz source albo initialize_params. Zmiana metadata_startup_script
 może wymienić VM; metadata["startup-script"] ma inne zachowanie. Aktualizacje
 machine_type mogą wymagać allow_stopping_for_update. Nie ustawiaj automatycznie
 tej zgody ani publicznego IP.
+
+## Reguły VPC Firewall
+
+Firewall jest globalny w obrębie VPC: jednostka należy do global/networking/firewall/<nazwa>/.
+Moduł firewall tworzy jedną google_compute_firewall.this i przyjmuje obiekt firewall.
+Sieć przekazuj przez dependency.network.outputs.network.self_link. Allow i deny są
+mapami bloków; wybierz tylko jedną akcję. Otwarcie portu z internetu wymaga jawnego
+source_ranges i target_tags lub target_service_accounts, zgodnie z poleceniem użytkownika.
+VM używa tags (network tags) do dopasowania reguły; to nie są Resource Manager Tags.
+Klucz publiczny SSH może być śledzony w repo; kluczy prywatnych nigdy nie kopiuj.
