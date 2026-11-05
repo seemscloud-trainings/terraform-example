@@ -29,6 +29,10 @@ routera. Nie oznacza to przejęcia jego własności w stanie. Nie twórz osobneg
 modułu router-bgp. Nowe funkcje oddzielaj według odpowiedzialności, nie według
 każdego pojedynczego resource. Nie dodawaj backendu ani konfiguracji env do modułu.
 
+Moduł network pozostaje atomowy: jedna VPC, wejście network jako obiekt i mapa
+subnetworks. Wiele VPC realizuj przez osobne jednostki Terragrunt
+network/<nazwa-vpc>/, nie przez zmianę tego modułu na mapę sieci.
+
 ## Argumenty i typowanie
 
 Dla nowego modułu sprawdź aktualną stabilną wersję providera w oficjalnym Registry,

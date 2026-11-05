@@ -15,7 +15,7 @@ terraform {
 }
 
 dependency "network" {
-  config_path = "../network"
+  config_path = "../network/vpn-eu-vpc"
 }
 
 inputs = {

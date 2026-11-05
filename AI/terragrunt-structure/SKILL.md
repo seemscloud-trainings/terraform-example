@@ -22,7 +22,7 @@ env/<środowisko>/
     └── <region>/
         ├── region.hcl
         └── networking/
-            ├── network/terragrunt.hcl
+            ├── network/<nazwa-vpc>/terragrunt.hcl
             ├── router/terragrunt.hcl
             ├── vpn-gateway/terragrunt.hcl
             └── connections/to-<peer-region>/
@@ -33,6 +33,8 @@ env/<środowisko>/
 
 Nie przywracaj pojedynczego regionalnego `tunnel` ani `router-config` zakładającego
 jednego peera. Sieć, router i brama są współdzielone przez połączenia regionu.
+Każda VPC ma osobną atomową jednostkę network/<nazwa-vpc>/ i osobny stan.
+Routery i bramy wskazują dependency do konkretnego katalogu VPC.
 Nowe połączenie nie duplikuje tych zasobów. Nie twórz automatycznie pełnej siatki
 połączeń; wykonuj tylko żądaną topologię.
 
@@ -144,7 +146,7 @@ te reguły osobno — formatter nie rozwija sam wszystkich zwartych obiektów.
 
 Przeczytaj aktualny root.hcl przed przeniesieniem jednostki. Obecnie korzysta z
 istniejącego GCS bucketu TF_STATE_BUCKET, nie tworzy bucketu, pomija networking
-w wyliczanej ścieżce i mapuje cztery historyczne stany oryginalnego EU–US.
+w wyliczanej ścieżce i mapuje historyczne stany oryginalnego EU–US oraz istniejących VPC.
 Zachowuj te klucze. To wyjątki migracyjne, nie wzorzec do kopiowania na nowe
 połączenia. Każda nowa jednostka musi mieć własny prefix; nie migruj ani nie usuwaj
 stanu tylko dlatego, że zmieniasz katalogi.
