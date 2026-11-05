@@ -119,6 +119,8 @@ Nie twórz zbiorczego obiektu konfiguracji providera, nie zmieniaj environment n
 inną nazwę i nie wpisuj projektu/regionu/środowiska ponownie na sztywno w jednostce.
 Dodatkowe ustawienia przekazuj wyłącznie zgodnie z wejściami modułu. Provider i jego
 wersja należą do modułu — nie generuj konkurencyjnej konfiguracji w env.
+W module `versions.tf` zawiera `terraform.required_version` i `required_providers`;
+`provider.tf` zawiera wyłącznie bloki konfiguracji `provider`.
 Nazwy i parametry usług mogą pochodzić z tematycznego pliku odczytanego w locals.
 Nie dodawaj nieużywanych locals ani nie wymyślaj automatycznego prefiksowania nazw.
 

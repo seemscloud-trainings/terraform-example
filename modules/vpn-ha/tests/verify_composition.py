@@ -6,7 +6,7 @@ a root mock. Copy the unchanged resource/input/output code, retain provider
 requirements, and remove only concrete provider configurations from test copies.
 """
 from pathlib import Path
-import os,shutil,subprocess,tempfile
+import os,re,shutil,subprocess,tempfile
 MODULES=Path(__file__).resolve().parents[2]
 EXAMPLE=MODULES/'vpn-ha/examples/gcp-to-gcp'
 with tempfile.TemporaryDirectory(prefix='vpn-composition-') as directory:
@@ -14,9 +14,9 @@ with tempfile.TemporaryDirectory(prefix='vpn-composition-') as directory:
  for name in ['router','vpn-ha']:
   target=root/name;target.mkdir()
   for src in (MODULES/name).glob('*.tf'):
+   if src.name=='provider.tf':continue
    content=src.read_text()
-   if src.name=='provider.tf':content=content.split('\nprovider "google"')[0]+'\n'
-   assert '\nprovider "google"' not in content, 'Concrete provider escaped fixture isolation'
+   assert not re.search(r'^\s*provider\s+"', content, re.MULTILINE), 'Concrete provider escaped fixture isolation'
    (target/src.name).write_text(content)
  work=root/'composition';work.mkdir()
  for src in EXAMPLE.glob('*.tf'):
@@ -24,7 +24,7 @@ with tempfile.TemporaryDirectory(prefix='vpn-composition-') as directory:
   if src.name=='main.tf':
    content=content.replace('module "routers" {','module "routers" {\n providers = {\n google = google\n }').replace('module "vpn" {','module "vpn" {\n providers = {\n google = google\n }').replace('module "routing" {','module "routing" {\n providers = {\n google = google\n }')
   (work/src.name).write_text(content)
- (work/'test-provider.tf').write_text('''terraform {
+ (work/'test-versions.tf').write_text('''terraform {
  required_providers {
   google = {
    source = "hashicorp/google"
@@ -32,7 +32,8 @@ with tempfile.TemporaryDirectory(prefix='vpn-composition-') as directory:
   }
  }
 }
-provider "google" {
+''')
+ (work/'provider.tf').write_text('''provider "google" {
  project = "mock-only"
  access_token = "invalid-mock-only-token"
  compute_custom_endpoint = "http://127.0.0.1:9/"

@@ -100,8 +100,8 @@ np. `vpn_interfaces.id` wewnątrz HA gateway jest prawidłowym argumentem.
 
 | Plik | Zawartość |
 |---|---|
-| `versions.tf` | Wyłącznie wymaganie minimalnej wersji Terraform potrzebnej modułowi |
-| `provider.tf` | `terraform.required_providers` z source i wersjami oraz bloki provider |
+| `versions.tf` | Blok `terraform`: `required_version` oraz `required_providers` z source i wersjami |
+| `provider.tf` | Wyłącznie bloki `provider`, bez `terraform` i wymagań wersji |
 | `v-provider.tf` | Osobne, typowane wejścia providera, np. project, region, impersonacja |
 | `v-environment.tf` | Wejście environment, bez automatycznej zmiany nazw |
 | `v-<zasób>.tf` | Typowany obiekt/mapa danego zasobu i jego walidacje |
