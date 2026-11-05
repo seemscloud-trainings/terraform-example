@@ -8,7 +8,7 @@ Prepared configuration only. This change does not deploy resources.
 | US | us-east1 | vpn-us-vpc | 10.81.0.0/24 | 65002 |
 
 Both VPCs belong to `prod-common-temp`. Names, ranges, ASNs and tunnel parameters
-are in `vpn.hcl`. Each region contains the same five Terragrunt units:
+are in `vpn.hcl`. Each region contains the same five Terragrunt units under `networking/`:
 
 - `network`: VPC and subnet, using `modules/network`.
 - `router`: creates the local Cloud Router, using `modules/router`.
@@ -30,7 +30,8 @@ created. No pre-reserved public address or external VPN gateway is required.
 ## State and secrets
 
 `root.hcl` uses the existing GCS bucket selected by `TF_STATE_BUCKET`; bucket
-creation is disabled. Every unit has a separate prefix derived from its path.
+creation is disabled. Every unit has a separate prefix. The grouping directory `networking/` is omitted
+from the prefix to preserve the existing state locations.
 
 From the repository root, copy `vpn.secrets.tfvars.example` to
 `vpn.secrets.tfvars` and replace both sample PSKs with strong random secrets.
@@ -49,7 +50,7 @@ From the repository root:
 ```sh
 TF_STATE_BUCKET=validation-only-not-used TG_VALIDATE_ONLY=true terragrunt hcl validate
 TF_STATE_BUCKET=validation-only-not-used TG_VALIDATE_ONLY=true \
-  terragrunt --working-dir env/prod/prod-common-temp/europe-west1/tunnel render --format hcl
+  terragrunt --working-dir env/prod/prod-common-temp/europe-west1/networking/tunnel render --format hcl
 ```
 
 Validation mocks are allowed only for validate/render, never plan/apply/destroy.

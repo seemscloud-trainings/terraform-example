@@ -7,8 +7,9 @@ remote_state {
   }
 
   config = {
-    bucket               = get_env("TF_STATE_BUCKET")
-    prefix               = "terragrunt-single/${path_relative_to_include()}"
+    bucket = get_env("TF_STATE_BUCKET")
+    # Preserve existing state keys after grouping units under networking/.
+    prefix               = "terragrunt-single/${join("/", [for segment in split("/", path_relative_to_include()) : segment if segment != "networking"])}"
     skip_bucket_creation = true
   }
 }

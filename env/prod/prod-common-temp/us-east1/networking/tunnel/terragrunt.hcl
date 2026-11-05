@@ -51,7 +51,7 @@ dependency "gateway" {
 }
 
 dependency "peer_gateway" {
-  config_path                             = "../../${local.site.peer_region}/vpn-gateway"
+  config_path                             = "../../../${local.site.peer_region}/networking/vpn-gateway"
   skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
   mock_outputs_allowed_terraform_commands = ["validate", "render"]
   mock_outputs = {
