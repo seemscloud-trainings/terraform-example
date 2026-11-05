@@ -1,130 +1,135 @@
 ---
 name: terraform-module
-description: Twórz i rozszerzaj moduły Terraform w terraform-example/modules, z pełnym pokryciem argumentów providera, typowanymi wejściami i stabilnymi mapami zasobów. Używaj przy pracy nad modułami tego repozytorium, nie do wdrażania środowisk.
+description: >-
+  Twórz i rozwijaj moduły Terraform w terraform-example/modules zgodnie z kontraktami tego repozytorium: pełne argumenty zasobów, typowane obiekty i mapy, jawne nazwy, osobne wejścia kontekstu i bezpieczne testy. Konfigurację env obsługuje skill terragrunt-structure.
 ---
 
-# Moduły Terraform w tym repozytorium
+# Moduły Terraform
 
-Skill należy wyłącznie do `terraform-example/AI/`. Nie instaluj go ani nie kopiuj
-do konfiguracji Codex, katalogu domowego lub innych repozytoriów. Przed edycją
-sprawdź instrukcje repozytorium i stan Git; zachowaj niezwiązane zmiany.
+Ten skill jest lokalną częścią repozytorium. Nie instaluj go w Codex ani nie
+kopiuj do katalogu domowego lub innych repozytoriów. Przeczytaj instrukcje
+repozytorium, stan Git, istniejące wejścia/wyjścia oraz wywołania zmienianego modułu.
+Dla konfiguracji środowiska używaj [terragrunt-structure](../terragrunt-structure/SKILL.md).
 
-## Zakres i elastyczność
+## Granice odpowiedzialności
 
-Moduł odpowiada jednej funkcji infrastruktury. Nazwa jest domenowa, bez prefiksu
-providera: `google_compute_network` → `modules/network`. Zasoby zależne należące
-do tej funkcji mogą być w tym samym module: network zawiera VPC i jego subnety.
-Nie dodawaj przy tym niezwiązanych VM, IAM, NAT, firewalli ani backendu stanu.
+Moduły znajdują się w `modules/<funkcja>`. Nazwa opisuje funkcję bez prefiksu
+providera, np. `google_compute_network` → `network`.
 
-Dla wybranej wersji providera odczytaj oficjalny schemat przez
-`terraform providers schema -json` i sprawdź dokumentację zasobów. To techniczny
-format API narzędzia, nie format konfiguracji modułu. Wszystkie pliki Terraform,
-wywołania i przykłady zapisuj w natywnym HCL: `nazwa = wartość`, bez JSON-owych
-obiektów i bez generowania konfiguracji `.tf.json`.
+Aktualne granice, których nie należy mieszać:
 
-Uwzględnij wszystkie konfigurowalne argumenty i bloki zagnieżdżone zasobów w
-zakresie modułu, także mniej typowe tryby. Nie ograniczaj modułu do jednego
-przykładu. Dla każdego pola zdecyduj: wejście użytkownika, jawne powiązanie z
-innym zasobem modułu lub wartość wynikowa. Udokumentuj pola wiązane wewnętrznie,
-dopuszczalne nadpisania oraz rzeczywiste braki providera. Nie udawaj obsługi
-funkcji, której provider nie wystawia.
+| Moduł | Zasoby i zachowanie |
+|---|---|
+| `network` | Jedna VPC oraz mapa subnetów; bez VM, VPN, routerów, NAT i firewalli |
+| `router` | Mapy routerów, interfejsów i peerów BGP; działa również bez VPN |
+| `vpn-ha` | Mapy bram HA i tuneli; przyjmuje istniejące routery, nie tworzy ich |
 
-Nie wystawiaj computed-only jako wejść. `optional + computed` może być
-konfigurowalne; sprawdź rzeczywistą walidację providera. Wyjątek: syntetyczne `id`
-bywa oznaczone optional w starym SDK, lecz nie jest argumentem do ustawiania.
-Nie generuj go bez sprawdzenia. Zachowaj wymagane pola, konflikty, ograniczenia
-trybów i wrażliwość danych; nie obchodź ograniczeń przez local-exec lub CLI.
+`router` z pustą mapą `routers` może konfigurować interfejsy/BGP istniejącego
+routera. Nie oznacza to przejęcia jego własności w stanie. Nie twórz osobnego
+modułu router-bgp. Nowe funkcje oddzielaj według odpowiedzialności, nie według
+każdego pojedynczego resource. Nie dodawaj backendu ani konfiguracji env do modułu.
 
-## Układ plików
+## Argumenty i typowanie
 
-- `versions.tf`: `terraform.required_version`, czyli uzasadniona minimalna wersja
-  Terraform potrzebna implementacji i testom.
-- `provider.tf`: `terraform.required_providers` z source i przypiętą wersją każdego
-  providera oraz bloki `provider`. Konfiguracja projektu/regionu pochodzi z wejść.
-  Dla nowego modułu sprawdź najnowszą stabilną wersję w oficjalnym Registry.
-  Istniejące przypięcia zmieniaj tylko w zakresie zadania.
-- `v-provider.tf`: osobne typowane wejścia `project`, `region` i opcjonalne
-  argumenty providera. Nie opakowuj ich w zbiorczy obiekt konfiguracji.
-  Preferuj ADC/standardowy łańcuch poświadczeń i opcjonalną impersonację. Nie
-  zapisuj sekretów w repozytorium.
-- `r-<zasób>.tf`: deklaracje resource konkretnego rodzaju, np. `r-network.tf`,
-  `r-subnetwork.tf`, `r-proxy-https.tf`, `r-proxy-http.tf`.
-- `v-<zasób>.tf`: odpowiadające im wejścia i walidacje, np. `v-network.tf`,
-  `v-subnetwork.tf`, `v-proxy-https.tf`. Grupuj po zasobie; unikaj setek luźnych
-  scalarów i jednego gigantycznego obiektu obejmującego cały moduł.
-- `locals-naming.tf`: wyłącznie nazwy zasobów. Obecnie użytkownik podaje `name`;
-  nie dopisuj prefiksów, sufiksów ani numerów, nie wyprowadzaj nazwy z klucza mapy.
-- `locals.tf` lub `locals-<temat>.tf`: tylko rzeczywiście potrzebne normalizacje
-  i wyliczenia inne niż nazewnictwo. Nie twórz pustych plików ani `l-*`.
-- `outputs.tf`: użyteczne, jawne wyniki, dla kolekcji mapy zachowujące klucze wejść.
-- `tests/*.tftest.hcl` i `examples/`: testy zachowania oraz parametryzowane przykłady.
+Dla nowego modułu sprawdź aktualną stabilną wersję providera w oficjalnym Registry,
+a następnie jego schemat i dokumentację. Obecne moduły przypinają Google 8.10.0;
+nie aktualizuj ich przy okazji innego zadania. Odczyt `terraform providers schema
+-json` jest technicznym formatem narzędzia, a nie formatem pisanej konfiguracji.
 
-Używaj małych liter w nazwach plików. Pojedynczy blok danego typu resource nazywaj
-`this`; rozróżniane funkcje nazywaj jawnie, np. `proxy_http`, `proxy_https`.
-Provider wewnątrz modułu jest obecną konwencją repozytorium. Wyjaśnij ograniczenie
-Terraform: taki moduł nie może mieć `count`, `for_each` ani `depends_on` na
-wywołaniu module. Wielokrotność obsługuj przez mapy wejściowe wewnątrz modułu.
+Uwzględnij wszystkie konfigurowalne argumenty i bloki zagnieżdżone zasobów w zakresie
+modułu. Każdy z nich musi być wejściem, udokumentowanym powiązaniem wewnętrznym
+lub uzasadnionym wyłączeniem, np. argument Classic VPN w module HA. Nie deklaruj
+obsługi brakującej w providerze. Nie obchodź braków przez provisionery/CLI.
 
+Computed-only nie jest wejściem. Optional+computed może być konfigurowalne.
+Sprawdzaj walidację providera: syntetyczne główne `id` bywa opisane przez SDK jako
+optional, ale nie wolno go ustawiać. Nie usuwaj mechanicznie każdego pola `id`:
+np. `vpn_interfaces.id` wewnątrz HA gateway jest prawidłowym argumentem.
 
-Niepuste obiekty i mapy zapisuj zawsze wieloliniowo. Po otwierającej klamrze
-zaczynaj zawartość w nowej linii; każda para klamer ma własny poziom wcięcia.
-Nie używaj formy `gateways = { main = { ... } }` ani dwóch klamer zamykających
-w jednej linii. Tak samo formatuj obiekty w wyrażeniach for, testach i przykładach.
-Puste `{}` mogą pozostać w jednej linii. Zwykły fmt nie zastępuje tej reguły.
+- `environment`, `project`, `region` są osobnymi wejściami. `environment` jest
+  kontekstem, nie automatycznym prefiksem nazwy. W GCP `project` jest wymagany,
+  `region` może mieć null jako domyślną wartość.
+- Pozostałe opcje providera również są osobnymi zmiennymi. Nie opakowuj kontekstu
+  w dodatkowy obiekt konfiguracji. Provider odczytuje np. `var.project`.
+- Jeden zasób: `object({...})`; kolekcja zasobów: `map(object({...}))`, zwykle
+  `default = {}` i `nullable = false`. Bez `any` i bez rozbijania zasobu na setki
+  luźnych scalarów. Kontekst providera jest świadomym wyjątkiem od grupowania.
+- Zachowaj wymagane pola. Stosuj `optional`; `default` określa wartość całego
+  wejścia, a `optional(typ, wartość)` domyślną wartość pola. Nie gub false, 0 ani
+  pustych kolekcji. Nie wymyślaj defaultów zmieniających znaczenie konfiguracji.
+- Waliduj sensowne ograniczenia, wybory wzajemnie wykluczające się i klucze
+  odwołań. Nie odrzucaj poprawnych zaawansowanych trybów GCP.
 
-## Wejścia i tożsamość zasobów
+## Pliki i nazwy
 
-Pojedynczy zasób otrzymuje `object({...})`; kolekcja zasobów otrzymuje
-`map(object({...}))`, zwykle `default = {}` i `nullable = false`. Subnety zawsze
-są mapą. Iteruj bezpośrednio przez `for_each`; adres ma zawierać stabilny klucz,
-np. `google_compute_subnetwork.this["application"]`.
+| Plik | Zawartość |
+|---|---|
+| `versions.tf` | Wyłącznie wymaganie minimalnej wersji Terraform potrzebnej modułowi |
+| `provider.tf` | `terraform.required_providers` z source i wersjami oraz bloki provider |
+| `v-provider.tf` | Osobne, typowane wejścia providera, np. project, region, impersonacja |
+| `v-environment.tf` | Wejście environment, bez automatycznej zmiany nazw |
+| `v-<zasób>.tf` | Typowany obiekt/mapa danego zasobu i jego walidacje |
+| `r-<zasób>.tf` | Resource, argumenty i dynamiczne bloki danego rodzaju |
+| `locals-naming.tf` | Wyłącznie nazwy podane przez użytkownika |
+| `locals.tf` / `locals-<temat>.tf` | Potrzebne wyliczenia, normalizacja i rozwiązywanie powiązań |
+| `outputs.tf` | Jawne wyniki, dla kolekcji mapy zachowujące klucze wejść |
 
-Klucz mapy to tożsamość Terraform, a `name` to nazwa zasobu w chmurze. Nie używaj
-`count`, indeksów list, `zipmap` z numeracją ani konwersji listy na mapę po indeksie
-do identyfikowania zasobów. Dodanie wpisu w środku lub zmiana kolejności mapy nie
-może przesuwać adresów pozostałych instancji. Zmiana klucza oznacza zmianę adresu;
-przy refaktoryzacji stosuj jawne `moved`, jeśli ma być zachowany istniejący zasób.
+Nazwy plików są małymi literami: `r-network.tf`, `v-subnetwork.tf`,
+`r-proxy-https.tf`, `v-proxy-https.tf`. Nie twórz `l-*` ani pustych locals.
+Blok resource nazywaj `this`; rozróżniane funkcje mogą mieć nazwy `proxy_http`,
+`proxy_https`. Każdy tworzony zasób otrzymuje jawne `name` od użytkownika.
+Nie dodawaj prefiksów/sufiksów, numerów ani nazwy wyliczonej z klucza mapy.
 
-Mapa nie gwarantuje braku każdej wymiany: zmiana niezmiennego argumentu, np. nazwy
-lub regionu, nadal może wymusić odtworzenie zgodnie z providerem. Mów o zachowaniu
-adresów/ID przy zmianie pozostałych wpisów, nie o ogólnej gwarancji zero destroy.
-Listy są dopuszczalne dla pól o istotnej kolejności i zwykłych wartości. Dla
-nazwanych, nieuporządkowanych bloków preferuj mapę; uwzględnij semantykę list/set
-providera i nie deklaruj, że mapa zmienia jego sposób przechowywania bloków.
+## Kolekcje, powiązania i stan
 
-Używaj precyzyjnych typów, `optional` i rozsądnych defaultów; bez `any` jako
-ucieczki od typowania. `default` dotyczy całego wejścia, `optional(typ, wartość)`
-pól obiektu. Nie gub jawnych `false`, `0` i pustych kolekcji. Waliduj znaczące
-ograniczenia, ale nie blokuj poprawnych zaawansowanych trybów providera.
-Opcjonalny pojedynczy blok renderuj z `value == null ? [] : [value]`; kolekcję przez
-`for_each` po mapie. Nie wyprowadzaj kluczy for_each z wartości computed po apply.
+Subnety i inne wielokrotne zasoby iteruj przez `for_each` ze stabilnymi kluczami.
+Nie używaj count, indeksów list ani map zbudowanych po indeksach. Klucz jest
+adresem Terraform; `name` jest osobną nazwą w chmurze. Zmiana kolejności albo
+innego wpisu nie może renumerować istniejących instancji. Zmianę klucza obsłuż
+przez jawne moved, jeśli zasób ma zostać zachowany.
 
-Domyślne połączenia między zasobami muszą być deklaratywne: subnet wskazuje VPC
-utworzone przez moduł. Dopuszczaj jawne nadpisania, jeżeli mają uzasadnienie w
-zakresie modułu, i opisuj ich pierwszeństwo. Nie wpisuj nazw projektów, VPC,
-regionów ani sekretów na sztywno w zasobach.
+Dla map zawierających sekrety można iterować po `nonsensitive(toset(keys(...)))`
+i odczytywać wartości przez klucz. Odtajniane mogą być tylko publiczne klucze,
+nie wartości sekretów. Klucze muszą być znane przed apply. Listy pozostaw dla
+wartości/protokołów i bloków, których kolejność ma znaczenie. Mapa nie usuwa
+wymiany wymuszonej zmianą niezmiennego argumentu providera.
 
-## Przykłady i weryfikacja
+Domyślnie wiąż zasoby deklaratywnie, np. subnet → self_link utworzonej VPC.
+Zachowaj jawne nadpisania i udokumentuj pierwszeństwo. Aktualny router korzysta
+z `router_key`/`interface_key` dla zasobów lokalnych lub `router`/`interface`
+dla nazw istniejących zasobów; nie pozwalaj na jednoczesne podanie obu wariantów.
+Nie konstruuj URL-i zamiast referencji do zarządzanych zasobów.
 
-Przykład rozdziela `main.tf` (wywołanie przez var.*), `variables.tf` (typy) i
-`terraform.tfvars.example` (przykładowe wartości do uzupełnienia). Przykład nie
-jest zgodą na wdrożenie ani na podłączenie go do `env/`.
+## Format i sekrety
 
-Wykonaj fmt, init z wyłączonym backendem, validate oraz testy `mock_provider`.
-Sprawdź minimalny zasób, pustą kolekcję, powiązanie zasobów, jawne nadpisania,
-opcjonalne bloki, istotne błędne wejścia i zachowanie ID po dodaniu/usunięciu
-innego klucza. Testy apply są dozwolone wyłącznie na mockach. Nie wykonuj realnego
-plan/apply/destroy, nie zmieniaj istniejących środowisk i nie dotykaj stanu chmury
-w ramach samego pisania modułu.
+Cała konfiguracja jest natywnym HCL (`=`), nie JSON-em ani `.tf.json`.
+Dwie spacje wcięcia. Puste linie oddzielają elementy najwyższego poziomu.
+Każdy niepusty obiekt/mapę rozwijaj na wiele linii, także w for, testach i przykładach.
+Nie umieszczaj zagnieżdżonego przypisania po otwierającej klamrze ani kilku klamer
+zamykających w jednej linii. Puste `{}` mogą zostać zwarte. Sam fmt nie wymusza
+wszystkich tych zasad — przejrzyj wynik.
 
-Opisz wynik, zakres argumentów, pominięcia wynikające z API i wykonane testy.
-Nie utożsamiaj testów mockowanych z dowodem działania całej infrastruktury w GCP.
+Sekrety są osobnymi wrażliwymi wejściami, nigdy kluczami iteracji ani outputami.
+Dla obsługiwanych write-only argumentów można używać wejść ephemeral i wersji
+rotacji; uwzględnij wtedy wymaganie Terraform >= 1.11. Standardowe PSK trafiają
+do stanu, co musi być opisane. Nie zapisuj prawdziwych sekretów w repozytorium.
 
-W testach złożenia nie zakładaj, że mock providera w root zastępuje konfiguracje
-providerów wewnątrz modułów potomnych. Stosuj izolowane kopie bez tych konfiguracji,
-przekaż mock jawnie przez providers i zablokuj użycie prawdziwych poświadczeń/API.
-Nie używaj bezpośredniego apply przykładu jako testu integracyjnego modułów.
+## Przykłady, testy i zakończenie
 
-Moduły przyjmują kontekst środowiska jako osobną zmienną `environment`.
-Nie wykorzystuj go automatycznie do zmiany jawnych nazw zasobów; reguły
-nazewnictwa wymagają osobnego ustalenia z użytkownikiem.
+Zachowaj istniejące przykłady. Potrzebny nowy przykład rozdziela wywołanie przez
+var.* w main.tf, typy w variables.tf i wartości w terraform.tfvars.example.
+Nie dodawaj demonstracyjnych środowisk ani podłączenia do env poza zakresem zadania.
+
+Uruchom fmt, init z wyłączonym backendem, validate i testy zachowania na mockach:
+minimum/pusta mapa, powiązania i nadpisania, opcjonalne bloki, błędne wejścia,
+zachowanie ID po dodaniu/usunięciu innego klucza. Nie używaj realnego apply jako testu.
+Provider jest konfigurowany wewnątrz modułu; module call nie może więc używać
+count/for_each/depends_on. Root mock nie musi zastąpić providera zagnieżdżonego.
+Przy testach złożenia użyj izolowanych kopii bez konfiguracji providerów, przekaż
+mock jawnie i zablokuj prawdziwe API/poświadczenia. Wzorem jest
+`modules/vpn-ha/tests/verify_composition.py`.
+
+Przy zmianie kontraktu zaktualizuj wywołania w env, przykłady, testy i dokumentację.
+Nie zmieniaj przy tym nazw zasobów, kluczy map lub stanów bez potrzeby. Raportuj
+wykonane kontrole i ograniczenia: mocki nie dowodzą zestawienia VPN ani dostępu
+sieciowego. Pisanie modułu nie upoważnia do wdrożenia infrastruktury.

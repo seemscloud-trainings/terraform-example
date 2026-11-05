@@ -1,54 +1,55 @@
 ---
 name: terragrunt-structure
-description: Twórz i rozwijaj konfiguracje środowisk Terragrunt w terraform-example/env, korzystając z lokalnych modułów, jawnych zależności i spójnego formatowania HCL. Nie służy do implementowania zasobów wewnątrz modułów Terraform.
+description: >-
+  Twórz i aktualizuj konfiguracje Terragrunt w terraform-example/env: kontekst przez locals, bezpośrednie wejścia modułów, rzeczywiste dependency outputs, regionalne networking i nazwane połączenia. Zachowuj własność stanu i natywny wieloliniowy HCL.
 ---
 
-# Konfiguracje Terragrunt
+# Struktura i użycie Terragrunt
 
-Skill należy wyłącznie do `terraform-example/AI/`. Nie instaluj go w Codex ani
-w katalogu domowym. Przed zmianami odczytaj istniejącą strukturę, instrukcje
-repozytorium, kontrakty wykorzystywanych modułów i stan Git. Zachowaj niezwiązane
-zmiany. Implementację samych modułów opisuje
-[terraform-module](../terraform-module/SKILL.md).
+Skill pozostaje wyłącznie w tym repozytorium, bez instalowania w Codex lub home.
+Sprawdź instrukcje, stan Git, root.hcl i kontrakty używanych modułów. Ich implementację
+opisuje [terraform-module](../terraform-module/SKILL.md). Nie modyfikuj cudzych zmian.
 
-## Struktura i odpowiedzialność
+## Obecny układ
 
-- `root.hcl` w root repozytorium: współdzielona konfiguracja stanu i ustawienia
-  rzeczywiście wspólne dla środowisk. Nie kopiuj jej do każdej jednostki.
-- `modules/<funkcja>/`: moduły Terraform. W Terragrunt wskazuj lokalny moduł przez
-  `${get_repo_root()}//modules/<funkcja>`; nie powielaj resource w konfiguracji env.
-- `env/<środowisko>/environment.hcl`: kontekst środowiska.
-- `env/<środowisko>/<projekt>/project.hcl`: kontekst projektu.
-- `env/<środowisko>/<projekt>/<region>/region.hcl`: kontekst regionu.
-- `env/<środowisko>/<projekt>/<region>/<jednostka>/terragrunt.hcl`: wejścia,
-  źródło modułu oraz zależności konkretnej jednostki.
+```text
+root.hcl
+modules/<funkcja>/
+env/<środowisko>/
+├── environment.hcl
+└── <projekt>/
+    ├── project.hcl
+    ├── vpn.hcl
+    └── <region>/
+        ├── region.hcl
+        └── networking/
+            ├── network/terragrunt.hcl
+            ├── router/terragrunt.hcl
+            ├── vpn-gateway/terragrunt.hcl
+            └── connections/to-<peer-region>/
+                ├── connection.hcl
+                ├── tunnels/terragrunt.hcl
+                └── bgp/terragrunt.hcl
+```
 
-Dostosuj liczbę jednostek do zakresu i granic własności stanu. Nie twórz dodatkowych
-katalogów lub modułów tylko dla kolejnych kroków instrukcji. Jeżeli kolejność
-API rzeczywiście wymaga rozdzielenia tworzenia zasobu i konfiguracji powiązań,
-wyjaśnij ten podział i zapewnij, że tylko jedna jednostka zarządza danym zasobem.
-Nie twórz cykli zależności ani dwóch stanów zarządzających tym samym obiektem.
-Nie przebudowuj istniejącego układu przy okazji samego formatowania.
+Nie przywracaj pojedynczego regionalnego `tunnel` ani `router-config` zakładającego
+jednego peera. Sieć, router i brama są współdzielone przez połączenia regionu.
+Nowe połączenie nie duplikuje tych zasobów. Nie twórz automatycznie pełnej siatki
+połączeń; wykonuj tylko żądaną topologię.
 
-## Obowiązkowe formatowanie
+`vpn.hcl` rozdziela mapy `sites` (wspólne dane regionów) i `connections` (nazwane
+połączenia, dwa endpointy, tunele/BGP, plik PSK). `connection.hcl` wybiera
+`connection_key`. Nazwy zasobów są jawne, klucze map stabilne; nowe połączenie musi
+mieć własne nazwy tuneli/interfejsów/peerów i niekolidującą adresację BGP.
 
-Używaj natywnego HCL: przypisania przez `=`, obiekty i mapy zamiast JSON-owych
-właściwości z `:`. Wcięcie to dwie spacje, układ wewnątrz bloków formatuje
-`terragrunt hcl fmt`.
+To aktualny wzorzec sieciowy, nie nakaz tworzenia tych katalogów dla każdej usługi.
+Nowe jednostki mają odzwierciedlać rzeczywistą odpowiedzialność i własność stanu.
 
-**Pomiędzy każdymi dwoma elementami najwyższego poziomu zawsze pozostaw jedną
-pustą linię.** Dotyczy to zarówno bloków, jak i zwykłych przypisań: `include`,
-`terraform_binary`, `locals`, `terraform`, każdego `dependency`, `dependencies`,
-`inputs`, `remote_state`, `generate` itd. Po zamykającym `}` nie zaczynaj kolejnego
-bloku bez pustej linii. Nie sklejaj `terraform_binary` z sąsiednimi blokami.
-Reguła dotyczy wszystkich plików konfiguracyjnych `.hcl`, nie tylko `root.hcl`.
-Komentarz należy do opisywanego elementu; pustą linię wstaw przed komentarzem.
+## Kontekst zawsze przez locals
 
-Zachowuj czytelne grupy w `locals`. Rozbudowane obiekty i mapy zapisuj wieloliniowo;
-nie ściskaj całej konfiguracji w jednej linii. Nie zmieniaj kolejności kolekcji,
-której semantyka zależy od kolejności.
-
-Przykład układu:
+`environment.hcl` udostępnia `inputs.environment`, `project.hcl` — `inputs.project`,
+a `region.hcl` — `inputs.region`. Używaj dokładnie tych nazw. Każda jednostka
+odczytuje te pliki w locals i przekazuje wartości bezpośrednio do inputs:
 
 ```hcl
 include "root" {
@@ -59,8 +60,8 @@ terraform_binary = "terraform"
 
 locals {
   environment = read_terragrunt_config(find_in_parent_folders("environment.hcl"))
-  project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
-  region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  project     = read_terragrunt_config(find_in_parent_folders("project.hcl"))
+  region      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
 }
 
 terraform {
@@ -69,8 +70,8 @@ terraform {
 
 inputs = {
   environment = local.environment.inputs.environment
-  project = local.project.inputs.project
-  region  = local.region.inputs.region
+  project     = local.project.inputs.project
+  region      = local.region.inputs.region
 
   network = {
     name = "example-vpc"
@@ -78,73 +79,92 @@ inputs = {
 }
 ```
 
+Nie twórz zbiorczego obiektu konfiguracji providera, nie zmieniaj environment na
+inną nazwę i nie wpisuj projektu/regionu/środowiska ponownie na sztywno w jednostce.
+Dodatkowe ustawienia przekazuj wyłącznie zgodnie z wejściami modułu. Provider i jego
+wersja należą do modułu — nie generuj konkurencyjnej konfiguracji w env.
+Nazwy i parametry usług mogą pochodzić z tematycznego pliku odczytanego w locals.
+Nie dodawaj nieużywanych locals ani nie wymyślaj automatycznego prefiksowania nazw.
 
-Niepuste obiekty i mapy zapisuj zawsze wieloliniowo. Po otwierającej klamrze
-zaczynaj zawartość w nowej linii; każda para klamer ma własny poziom wcięcia.
-Nie używaj formy `gateways = { main = { ... } }` ani dwóch klamer zamykających
-w jednej linii. Tak samo formatuj obiekty w wyrażeniach for, testach i przykładach.
-Puste `{}` mogą pozostać w jednej linii. Zwykły fmt nie zastępuje tej reguły.
+## Zależności i granice projektów
 
-## Dane i kontrakty modułów
+Każde odwołanie do zasobu innej jednostki pochodzi z rzeczywistych
+`dependency.<nazwa>.outputs`. Dla identyfikatorów URL używaj outputu `.self_link`;
+gdy provider wymaga nazwy, użyj outputu `.name`. Nie składaj adresów googleapis.com
+z projektu, regionu i nazwy. W env nie ma mock_outputs, skip_outputs ani fikcyjnych
+ID. Izolowane mocki testów modułów nie są konfiguracją env.
 
-Odczytuj projekt i region z najbliższych plików kontekstowych. Wspólne dane jednej
-konfiguracji, np. obu końców VPN, trzymaj w jednym tematycznym pliku `.hcl`, jeśli
-eliminuje to rzeczywiste duplikowanie. Nie przenoś tam niepowiązanych ustawień.
-Przekazuj tylko wejścia, które przyjmuje moduł. Projekt i region przekazuj bezpośrednio, np. `project = local.project.inputs.project`
-i `region = local.region.inputs.region`. Nie buduj zbiorczego obiektu konfiguracji
-providera w locals ani inputs. Nie wstawiaj nieużywanego kontekstu
-ani locals bez potrzeby. Definicje i wersje providerów pozostają w module, jeśli
-taki jest jego kontrakt; nie generuj drugiego konkurencyjnego providera.
+`find_in_parent_folders("project.hcl")` znajduje najbliższy projekt. Obecny wzorzec
+połączeń obsługuje regiony TEGO SAMEGO projektu: peer wynika z drugiego endpointu,
+a jego gateway znajduje się pod katalogiem tego projektu. Nie przedstawiaj tego
+jako obsługi cross-project. Dla żądanego połączenia między projektami najpierw
+rozszerz jawne dane endpointów o projekt/ścieżkę i wyznacz dependency do właściwego
+projektu; nie zgaduj go i nie zmieniaj prawdziwego outputu na zbudowany URL.
 
-Wiele zasobów przekazuj jako mapę obiektów z trwałymi, znaczącymi kluczami.
-Nie identyfikuj zasobów po pozycji w liście. Nazwy zasobów są jawnie określone
-w konfiguracji środowiska i niezależne od kluczy mapy. Zachowuj wartości false,
-zero i świadomie puste kolekcje oraz semantykę optional/default modułu.
+Przykład zależności lokalnej w jednostce tunnels:
 
-## Zależności i stan
+```hcl
+dependency "gateway" {
+  config_path = "../../../vpn-gateway"
+}
+```
 
-Do przekazania danych z innej jednostki używaj `dependency` i rzeczywistych
-`dependency.<nazwa>.outputs`. Nie zastępuj outputów skonstruowanymi na sztywno ID.
-Ścieżki zależności muszą prowadzić do istniejących jednostek, a graf musi być
-acykliczny. Zweryfikuj obie strony połączenia: regiony, adresy, ASN i kierunki
-odwołań, jeśli mają znaczenie dla zadania.
+Jej wynik jest używany w obiekcie tunelu jako
+`vpn_gateway = dependency.gateway.outputs.gateways.main.self_link`.
+Zweryfikuj istnienie ścieżki, nazwę outputu i klucz mapy w module.
 
-W konfiguracji `env/` nie dodawaj `mock_outputs`, `skip_outputs` ani zastępczych
-linków/ID. Każde odwołanie do zasobu innej jednostki pobieraj z jej rzeczywistych
-outputów przez `dependency`. Używaj `.self_link` tam, gdzie wymagany jest link;
-gdy argument providera wymaga nazwy, używaj `.name` z outputu zależności.
-Nie składaj adresów `googleapis.com` z nazw projektu, regionu i zasobu.
+## Składanie modułów bez cyklu
 
-Jeśli poprzednia jednostka nie została wdrożona i nie ma outputów, nie maskuj
-tego fikcyjnymi danymi. Sprawdź statycznie składnię i ścieżki zależności oraz
-wyjaśnij, że pełny render/plan wymaga rzeczywistych outputów. Izolowane testy
-modułów nie są konfiguracją środowiska i pozostają poza `env/`.
+Aktualna kolejność: network → router / vpn-gateway → tunnels → bgp.
+`router` tworzy Cloud Router, `vpn-ha` otrzymuje jego referencję, a jednostka bgp
+używa ponownie MODUŁU router z pustą mapą routers, konfigurując tylko interfejsy
+oraz peery danego połączenia. Nie tworzy drugiego routera ani drugiego właściciela
+routera w stanie. Nie dodawaj modułu router-bgp.
 
-Utrzymuj unikalny prefix stanu dla każdej jednostki. Przeniesienie istniejącego
-katalogu może zmienić `path_relative_to_include()` i adres stanu; uwzględnij to
-przed zmianą układu. Nie usuwaj ani nie migruj stanu w ramach przygotowania kodu.
+Obie strony tunelu potrzebują swoich bram, zgodnych par interfejsów, pasujących
+PSK i wzajemnej adresacji BGP. Sprawdzaj ASN, CIDR i nazwy także między wieloma
+połączeniami na tym samym routerze. Graf dependency musi pozostać acykliczny.
 
-## Sekrety i sprawdzenie wyniku
+## Formatowanie obowiązkowe
 
-PSK, hasła i tokeny nie należą do śledzonych plików. Używaj ignorowanych plików
-zmiennych albo istniejącego mechanizmu sekretów. Jeśli jednostki muszą użyć tego
-samego sekretu, wskaż im wspólne źródło. Przykłady zawierają wyłącznie jawnie
-opisane placeholdery. Nie drukuj wyrenderowanych sekretów podczas kontroli.
+Natywny HCL: przypisania przez `=`, dwie spacje wcięcia, bez JSON-owych obiektów.
+Pomiędzy każdymi elementami najwyższego poziomu jest jedna pusta linia: include,
+terraform_binary, locals, terraform, poszczególne dependency, inputs itd.
+Komentarz należy do następującego elementu; pustą linię umieść przed komentarzem.
 
-Po zmianach uruchom formatowanie i sprawdź osobno obowiązkowe puste linie:
-`terragrunt hcl fmt` nie musi ich sam dodać. Wykonaj `terragrunt hcl validate`,
-a w przypadku zmian logicznych także bezpieczny render i kontrolę grafu zależności.
-Walidacja nie może przypadkiem inicjalizować prawdziwego backendu lub używać
-prawdziwych poświadczeń do testowego apply. Przy zmianie wyłącznie odstępów
-porównaj treść bez białych znaków, żeby potwierdzić brak zmian konfiguracji.
-Przejrzyj diff, zakres plików i reguły ignorowania sekretów.
+Każdy niepusty obiekt/mapę zapisuj wieloliniowo, także wewnątrz for i przykładów.
+Po klamrze otwierającej zawartość zaczyna się w nowej linii. Każda klamra zamykająca
+ma osobną linię i właściwy poziom wcięcia. Tylko puste `{}` mogą być zwarte.
+Nie pozostawiaj pustej linii zaraz po otwierającej klamrze. Uruchom fmt i sprawdź
+te reguły osobno — formatter nie rozwija sam wszystkich zwartych obiektów.
 
-Przygotowanie konfiguracji nie oznacza wdrożenia. Nie uruchamiaj rzeczywistego
-plan/apply/destroy ani nie twórz zasobów bez odpowiedniego polecenia użytkownika.
-W podsumowaniu podaj przygotowane ścieżki, wykonane kontrole i dane nadal
-wymagane do późniejszego wdrożenia.
+## Stan i sekrety
 
-Środowisko nazywaj `environment`. Każda jednostka odczytuje `environment.hcl`
-w locals i przekazuje `environment = local.environment.inputs.environment`.
-Tak samo projekt i region przechodzą przez locals; nie wpisuj tych wartości
-na sztywno w inputs. `environment.hcl` udostępnia `inputs.environment`.
+Przeczytaj aktualny root.hcl przed przeniesieniem jednostki. Obecnie korzysta z
+istniejącego GCS bucketu TF_STATE_BUCKET, nie tworzy bucketu, pomija networking
+w wyliczanej ścieżce i mapuje cztery historyczne stany oryginalnego EU–US.
+Zachowuj te klucze. To wyjątki migracyjne, nie wzorzec do kopiowania na nowe
+połączenia. Każda nowa jednostka musi mieć własny prefix; nie migruj ani nie usuwaj
+stanu tylko dlatego, że zmieniasz katalogi.
+
+Plik PSK wskazuje dane połączenie, domyślnie względem root repozytorium.
+Oba endpointy muszą otrzymać pasujące klucze. Prawdziwe `*.secrets.tfvars` są
+ignorowane; śledzone przykłady zawierają wyłącznie placeholdery. Globalne ustawienie
+VPN_SECRETS_FILE nadpisze ścieżkę również innym połączeniom w tym uruchomieniu —
+nie używaj go przypadkiem przy wielu różnych plikach. Nie loguj sekretów.
+
+## Weryfikacja i zakres pracy
+
+Uruchom hcl fmt --check, sprawdź własne reguły layoutu, diff, ścieżki dependency,
+kontrakty inputs/outputs, unikalność stanów i acykliczność grafu. Jeśli zależności
+mają rzeczywiste outputy, można wykonać odpowiednią walidację/render. Nie zakładaj,
+że hcl validate jest zawsze offline: może próbować odczytać zależności/backend.
+Gdy stanów brak, ogranicz się do kontroli statycznych i izolowanych testów poza
+env; nie wstawiaj mocków ani nie twórz zasobów tylko po to, aby uzyskać outputy.
+
+Przy formatowaniu potwierdź brak zmiany wartości/wyrażeń. Przy zmianie interfejsu
+modułu zaktualizuj wszystkie wywołania, przykłady i testy. Przy rozbudowie topologii
+sprawdź, że nowe połączenie nie zmienia starego i nie duplikuje lokalnej bramy.
+Przygotowanie kodu nie jest poleceniem wdrożenia: bez odpowiedniej instrukcji nie
+uruchamiaj realnego plan/apply/destroy. Raportuj faktyczne kontrole, ograniczenia
+oraz ewentualne brakujące dane do przyszłego wdrożenia.
