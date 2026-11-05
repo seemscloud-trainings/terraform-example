@@ -14,10 +14,6 @@ terraform {
   source = "${get_repo_root()}//modules/vpn-ha"
 }
 
-dependency "network" {
-  config_path = "../network/vpn-eu-vpc"
-}
-
 inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
@@ -30,4 +26,8 @@ inputs = {
       stack_type         = "IPV4_ONLY"
     }
   }
+}
+
+dependency "network" {
+  config_path = "../network/vpn-eu-vpc"
 }

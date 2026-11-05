@@ -15,18 +15,6 @@ terraform {
   source = "${get_repo_root()}//modules/router"
 }
 
-dependency "router" {
-  config_path = "../../../router"
-}
-
-dependency "peer_router" {
-  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/router"
-}
-
-dependency "tunnel" {
-  config_path = "../tunnels"
-}
-
 inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
@@ -50,4 +38,16 @@ inputs = {
       advertise_mode  = "DEFAULT"
     }
   }
+}
+
+dependency "router" {
+  config_path = "../../../router"
+}
+
+dependency "peer_router" {
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/router"
+}
+
+dependency "tunnel" {
+  config_path = "../tunnels"
 }

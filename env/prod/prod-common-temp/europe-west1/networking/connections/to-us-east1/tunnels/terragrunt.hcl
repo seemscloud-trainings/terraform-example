@@ -19,18 +19,6 @@ terraform {
   }
 }
 
-dependency "router" {
-  config_path = "../../../router"
-}
-
-dependency "gateway" {
-  config_path = "../../../vpn-gateway"
-}
-
-dependency "peer_gateway" {
-  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/vpn-gateway"
-}
-
 inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
@@ -46,4 +34,16 @@ inputs = {
       secret_key            = key
     }
   }
+}
+
+dependency "router" {
+  config_path = "../../../router"
+}
+
+dependency "gateway" {
+  config_path = "../../../vpn-gateway"
+}
+
+dependency "peer_gateway" {
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/vpn-gateway"
 }

@@ -132,8 +132,12 @@ połączeniami na tym samym routerze. Graf dependency musi pozostać acykliczny.
 ## Formatowanie obowiązkowe
 
 Natywny HCL: przypisania przez `=`, dwie spacje wcięcia, bez JSON-owych obiektów.
-Pomiędzy każdymi elementami najwyższego poziomu jest jedna pusta linia: include,
-terraform_binary, locals, terraform, poszczególne dependency, inputs itd.
+W każdym `terragrunt.hcl` zachowuj zawsze kolejność elementów najwyższego poziomu:
+`include` → `terraform_binary` → `locals` → `terraform` → `inputs` → `dependency` / `dependencies`.
+Wszystkie bloki zależności umieszczaj na samym dole, po inputs, również gdy inputs
+odwołuje się do ich outputów. Pomijaj elementy, których jednostka nie potrzebuje.
+Ta kolejność dotyczy także przykładów i szablonów; nie określa kolejności wdrażania.
+Pomiędzy każdymi elementami najwyższego poziomu jest jedna pusta linia.
 Komentarz należy do następującego elementu; pustą linię umieść przed komentarzem.
 
 Każdy niepusty obiekt/mapę zapisuj wieloliniowo, także wewnątrz for i przykładów.

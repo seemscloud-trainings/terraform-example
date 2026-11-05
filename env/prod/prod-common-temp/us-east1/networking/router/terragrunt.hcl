@@ -14,10 +14,6 @@ terraform {
   source = "${get_repo_root()}//modules/router"
 }
 
-dependency "network" {
-  config_path = "../network/vpn-us-vpc"
-}
-
 inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
@@ -32,4 +28,8 @@ inputs = {
       }
     }
   }
+}
+
+dependency "network" {
+  config_path = "../network/vpn-us-vpc"
 }
