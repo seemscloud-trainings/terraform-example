@@ -19,10 +19,10 @@ env/<środowisko>/
 ├── environment.hcl
 └── <projekt>/
     ├── project.hcl
-    ├── vpn.hcl
     └── <region>/
         ├── region.hcl
         └── networking/
+            ├── networking.hcl
             ├── network/terragrunt.hcl
             ├── router/terragrunt.hcl
             ├── vpn-gateway/terragrunt.hcl
@@ -37,10 +37,14 @@ jednego peera. Sieć, router i brama są współdzielone przez połączenia regi
 Nowe połączenie nie duplikuje tych zasobów. Nie twórz automatycznie pełnej siatki
 połączeń; wykonuj tylko żądaną topologię.
 
-`vpn.hcl` rozdziela mapy `sites` (wspólne dane regionów) i `connections` (nazwane
-połączenia, dwa endpointy, tunele/BGP, plik PSK). `connection.hcl` wybiera
-`connection_key`. Nazwy zasobów są jawne, klucze map stabilne; nowe połączenie musi
-mieć własne nazwy tuneli/interfejsów/peerów i niekolidującą adresację BGP.
+`networking/networking.hcl` przechowuje dane tylko danego regionu: nazwy VPC,
+subnetu, routera i bramy, CIDR oraz ASN. `connections/to-<peer>/connection.hcl`
+przechowuje dane tylko tego końca połączenia: peer_region, plik PSK i mapę tuneli
+z nazwami, interfejsami i adresacją BGP. Jednostki odczytują te pliki w locals.
+ASN peera pochodzi z jego regionalnego networking.hcl, nie z powielonej wartości.
+Nie twórz centralnego katalogu sites/connections na poziomie projektu ani nie
+przenoś tam danych regionalnych. project.hcl pozostaje kontekstem projektu.
+Nazwy zasobów są jawne; każde nowe połączenie ma własne nazwy i zakresy BGP.
 
 To aktualny wzorzec sieciowy, nie nakaz tworzenia tych katalogów dla każdej usługi.
 Nowe jednostki mają odzwierciedlać rzeczywistą odpowiedzialność i własność stanu.
@@ -95,7 +99,7 @@ z projektu, regionu i nazwy. W env nie ma mock_outputs, skip_outputs ani fikcyjn
 ID. Izolowane mocki testów modułów nie są konfiguracją env.
 
 `find_in_parent_folders("project.hcl")` znajduje najbliższy projekt. Obecny wzorzec
-połączeń obsługuje regiony TEGO SAMEGO projektu: peer wynika z drugiego endpointu,
+połączeń obsługuje regiony TEGO SAMEGO projektu: peer wskazuje lokalny connection.hcl,
 a jego gateway znajduje się pod katalogiem tego projektu. Nie przedstawiaj tego
 jako obsługi cross-project. Dla żądanego połączenia między projektami najpierw
 rozszerz jawne dane endpointów o projekt/ścieżkę i wyznacz dependency do właściwego

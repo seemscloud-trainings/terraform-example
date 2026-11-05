@@ -14,6 +14,7 @@ by their peer, rather than assuming that the region has only one peer:
 europe-west1/
 ├── region.hcl
 └── networking/
+    ├── networking.hcl
     ├── network/
     ├── router/
     ├── vpn-gateway/
@@ -25,9 +26,10 @@ europe-west1/
 ```
 
 `us-east1` has the reciprocal `connections/to-europe-west1/` directory.
-`connection.hcl` selects an entry from `locals.connections` in `vpn.hcl`.
-`locals.sites` holds shared regional properties. Each connection contains its
-own two endpoints, tunnel names, BGP addresses and secret-file location.
+`networking/networking.hcl` contains only that regional site's names, CIDR and
+ASN. Each `connection.hcl` contains only that local connection endpoint: peer
+region, secret-file location and tunnel/BGP parameters. There is no project-level
+VPN inventory. BGP reads the peer ASN from the peer's regional networking.hcl.
 
 ## Ownership and dependencies
 
@@ -47,21 +49,19 @@ their GCP scope, including interface/peer names across connections on one router
 
 ## Add another connection
 
-1. Add a site to `vpn.hcl` only if the region does not exist yet. Give it a
-   non-overlapping subnet range and suitable ASN, and create its `region.hcl`
-   plus the three shared networking units. Reuse existing regional units.
-2. Add a named connection, e.g. `eu-asia`, to `locals.connections`, with exactly
-   two regional endpoints. Give it explicit unique tunnel/interface/peer names,
-   two unused BGP /30 networks and reciprocal local/peer IPs. Interface pairs
-   remain 0 ↔ 0 and 1 ↔ 1.
-3. In both endpoint regions add `connections/to-<peer-region>/`. Copy the generic
-   `tunnels` and `bgp` unit files and set the connection key in `connection.hcl`.
-   Their paths, peer selection and inputs are derived from context; no module
-   modification or duplicate regional router/gateway is needed.
-4. Point that connection at its own ignored secrets file, e.g.
-   `eu-asia.secrets.tfvars`. It must contain matching `primary`/`secondary` PSKs
-   for the two endpoints. Decide which region pairs should connect; adding a
-   region does not silently create a full mesh.
+1. For a new region, add its `region.hcl`, `networking/networking.hcl` and the
+   three shared units (network, router, vpn-gateway). Give the site a distinct VPC
+   name, non-overlapping subnet CIDR and appropriate ASN. Reuse existing regional
+   units when they already exist.
+2. Add `connections/to-<peer-region>/` in both endpoint regions. The `tunnels`
+   and `bgp` unit files are generic; connection.hcl supplies the local parameters.
+3. Set `peer_region`, a matching `secrets_file` and the local tunnel map in each
+   connection.hcl. Names must be unique in their GCP scope. Use two unused BGP
+   /30 networks, reciprocal local/peer addresses and interface pairs 0 ↔ 0, 1 ↔ 1.
+4. Supply a separate ignored secrets file for the connection, e.g.
+   `eu-asia.secrets.tfvars`, with matching primary/secondary PSKs for both ends.
+   Do not duplicate the local router/gateway, and do not create a full mesh unless
+   that topology is requested.
 
 ## State and secrets
 
@@ -76,7 +76,7 @@ root. Copy `vpn.secrets.tfvars.example` there and replace both placeholders.
 `*.secrets.tfvars` is ignored by Git. Standard PSKs are stored in Terraform state,
 so access to the state backend must be protected.
 
-`connections.<key>.secrets_file` is relative to repository root. Optional
+`connection.hcl` → `locals.secrets_file` is relative to repository root. Optional
 `VPN_SECRETS_FILE` overrides the path for a particular invocation; avoid setting
 that globally when running several connections that use different PSK files.
 

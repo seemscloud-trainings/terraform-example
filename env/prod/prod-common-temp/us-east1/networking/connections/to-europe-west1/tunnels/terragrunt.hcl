@@ -5,16 +5,10 @@ include "root" {
 terraform_binary = "terraform"
 
 locals {
-  environment       = read_terragrunt_config(find_in_parent_folders("environment.hcl"))
-  project           = read_terragrunt_config(find_in_parent_folders("project.hcl"))
-  region            = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-  vpn               = read_terragrunt_config(find_in_parent_folders("vpn.hcl"))
-  connection_config = read_terragrunt_config(find_in_parent_folders("connection.hcl"))
-  connection        = local.vpn.locals.connections[local.connection_config.locals.connection_key]
-  site              = local.vpn.locals.sites[local.region.inputs.region]
-  endpoint          = local.connection.endpoints[local.region.inputs.region]
-  peer_region       = one([for region in keys(local.connection.endpoints) : region if region != local.region.inputs.region])
-  peer              = local.vpn.locals.sites[local.peer_region]
+  environment = read_terragrunt_config(find_in_parent_folders("environment.hcl"))
+  project     = read_terragrunt_config(find_in_parent_folders("project.hcl"))
+  region      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  connection  = read_terragrunt_config(find_in_parent_folders("connection.hcl")).locals
 }
 
 terraform {
@@ -34,7 +28,7 @@ dependency "gateway" {
 }
 
 dependency "peer_gateway" {
-  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.peer_region}/networking/vpn-gateway"
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/vpn-gateway"
 }
 
 inputs = {
@@ -42,7 +36,7 @@ inputs = {
   project     = local.project.inputs.project
   region      = local.region.inputs.region
   tunnels = {
-    for key, tunnel in local.endpoint.tunnels : key => {
+    for key, tunnel in local.connection.tunnels : key => {
       name                  = tunnel.name
       vpn_gateway           = dependency.gateway.outputs.gateways.main.self_link
       peer_gcp_gateway      = dependency.peer_gateway.outputs.gateways.main.self_link
