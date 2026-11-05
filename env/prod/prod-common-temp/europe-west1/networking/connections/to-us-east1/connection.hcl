@@ -4,19 +4,19 @@ locals {
   tunnels = {
     primary = {
       interface       = 0
-      interface_name  = "vpn-eu-primary-if"
+      interface_name  = "to-orion-primary"
       ip_range        = "169.254.10.1/30"
-      name            = "vpn-eu-primary"
+      name            = "to-orion-primary"
       peer_ip_address = "169.254.10.2"
-      peer_name       = "vpn-eu-primary-peer"
+      peer_name       = "to-orion-primary"
     }
     secondary = {
       interface       = 1
-      interface_name  = "vpn-eu-secondary-if"
+      interface_name  = "to-orion-secondary"
       ip_range        = "169.254.11.1/30"
-      name            = "vpn-eu-secondary"
+      name            = "to-orion-secondary"
       peer_ip_address = "169.254.11.2"
-      peer_name       = "vpn-eu-secondary-peer"
+      peer_name       = "to-orion-secondary"
     }
   }
 }

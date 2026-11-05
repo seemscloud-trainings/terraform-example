@@ -4,7 +4,7 @@ project = "project-a"
 region  = "europe-west1"
 routers = {
   application = {
-    name    = "application-router"
+    name    = "application"
     network = "projects/project-a/global/networks/application"
   }
 }

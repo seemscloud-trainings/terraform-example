@@ -5,7 +5,7 @@ region  = "europe-west1"
 
 routers = {
   a = {
-    name    = "router-a"
+    name    = "atlas"
     project = "project-a"
     network = "projects/project-a/global/networks/vpc-a"
     bgp = {
@@ -13,7 +13,7 @@ routers = {
     }
   }
   b = {
-    name    = "router-b"
+    name    = "orion"
     project = "project-b"
     network = "projects/project-b/global/networks/vpc-b"
     bgp = {
@@ -24,12 +24,12 @@ routers = {
 
 gateways = {
   a = {
-    name    = "gateway-a"
+    name    = "atlas"
     project = "project-a"
     network = "projects/project-a/global/networks/vpc-a"
   }
   b = {
-    name    = "gateway-b"
+    name    = "orion"
     project = "project-b"
     network = "projects/project-b/global/networks/vpc-b"
   }
@@ -37,28 +37,28 @@ gateways = {
 
 tunnels = {
   a_primary = {
-    name                  = "a-primary"
+    name                  = "to-orion-primary"
     gateway_key           = "a"
     peer_gateway_key      = "b"
     vpn_gateway_interface = 0
     secret_key            = "primary"
   }
   a_secondary = {
-    name                  = "a-secondary"
+    name                  = "to-orion-secondary"
     gateway_key           = "a"
     peer_gateway_key      = "b"
     vpn_gateway_interface = 1
     secret_key            = "secondary"
   }
   b_primary = {
-    name                  = "b-primary"
+    name                  = "to-atlas-primary"
     gateway_key           = "b"
     peer_gateway_key      = "a"
     vpn_gateway_interface = 0
     secret_key            = "primary"
   }
   b_secondary = {
-    name                  = "b-secondary"
+    name                  = "to-atlas-secondary"
     gateway_key           = "b"
     peer_gateway_key      = "a"
     vpn_gateway_interface = 1
@@ -75,22 +75,22 @@ tunnel_router_keys = {
 
 interfaces = {
   a_primary = {
-    name       = "a-primary-interface"
+    name       = "to-orion-primary"
     router_key = "a"
     ip_range   = "169.254.10.1/30"
   }
   a_secondary = {
-    name       = "a-secondary-interface"
+    name       = "to-orion-secondary"
     router_key = "a"
     ip_range   = "169.254.11.1/30"
   }
   b_primary = {
-    name       = "b-primary-interface"
+    name       = "to-atlas-primary"
     router_key = "b"
     ip_range   = "169.254.10.2/30"
   }
   b_secondary = {
-    name       = "b-secondary-interface"
+    name       = "to-atlas-secondary"
     router_key = "b"
     ip_range   = "169.254.11.2/30"
   }
@@ -105,28 +105,28 @@ interface_tunnel_keys = {
 
 peers = {
   a_primary = {
-    name            = "a-primary-peer"
+    name            = "to-orion-primary"
     router_key      = "a"
     interface_key   = "a_primary"
     peer_asn        = 65002
     peer_ip_address = "169.254.10.2"
   }
   a_secondary = {
-    name            = "a-secondary-peer"
+    name            = "to-orion-secondary"
     router_key      = "a"
     interface_key   = "a_secondary"
     peer_asn        = 65002
     peer_ip_address = "169.254.11.2"
   }
   b_primary = {
-    name            = "b-primary-peer"
+    name            = "to-atlas-primary"
     router_key      = "b"
     interface_key   = "b_primary"
     peer_asn        = 65001
     peer_ip_address = "169.254.10.1"
   }
   b_secondary = {
-    name            = "b-secondary-peer"
+    name            = "to-atlas-secondary"
     router_key      = "b"
     interface_key   = "b_secondary"
     peer_asn        = 65001

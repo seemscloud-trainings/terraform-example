@@ -4,13 +4,13 @@ project = "prod-common-temp"
 region  = "europe-west1"
 
 network = {
-  name         = "training-vpc"
+  name         = "atlas"
   routing_mode = "REGIONAL"
 }
 
 subnetworks = {
   application = {
-    name                     = "training-application"
+    name                     = "application"
     ip_cidr_range            = "10.10.1.0/24"
     private_ip_google_access = true
     secondary_ip_range = {
@@ -25,7 +25,7 @@ subnetworks = {
     }
   }
   database = {
-    name          = "training-database"
+    name          = "database"
     ip_cidr_range = "10.10.2.0/24"
   }
 }

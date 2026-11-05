@@ -15,13 +15,13 @@ run "standalone_router" {
   variables {
     routers = {
       nat = {
-        name    = "nat-router"
+        name    = "egress"
         network = "projects/test-project/global/networks/app"
       }
     }
   }
   assert {
-    condition     = google_compute_router.this["nat"].name == "nat-router" && output.routers["nat"].asn == null && length(output.interfaces) == 0 && length(output.peers) == 0
+    condition     = google_compute_router.this["nat"].name == "egress" && output.routers["nat"].asn == null && length(output.interfaces) == 0 && length(output.peers) == 0
     error_message = "Router must work without any VPN, interface or BGP peer."
   }
 }
@@ -30,14 +30,14 @@ run "insert_router" {
   variables {
     routers = {
       core = {
-        name    = "core-router"
+        name    = "core"
         network = "projects/test-project/global/networks/app"
         bgp = {
           asn = 65001
         }
       }
       nat = {
-        name    = "nat-router"
+        name    = "egress"
         network = "projects/test-project/global/networks/app"
       }
     }
@@ -52,7 +52,7 @@ run "remove_other_router" {
   variables {
     routers = {
       nat = {
-        name    = "nat-router"
+        name    = "egress"
         network = "projects/test-project/global/networks/app"
       }
     }
@@ -67,7 +67,7 @@ run "managed_interfaces_and_peers" {
   variables {
     routers = {
       core = {
-        name    = "core-router"
+        name    = "core"
         project = "host-project"
         region  = "europe-west4"
         network = "projects/host-project/global/networks/app"
@@ -84,7 +84,7 @@ run "managed_interfaces_and_peers" {
     }
     interfaces = {
       primary = {
-        name       = "vpn-interface"
+        name       = "primary"
         router_key = "core"
         vpn_tunnel = "projects/host-project/regions/europe-west4/vpnTunnels/primary"
         ip_range   = "169.254.10.1/30"
@@ -92,7 +92,7 @@ run "managed_interfaces_and_peers" {
     }
     peers = {
       primary = {
-        name                           = "vpn-peer"
+        name                           = "primary"
         router_key                     = "core"
         interface_key                  = "primary"
         peer_asn                       = 65002
@@ -117,16 +117,16 @@ run "existing_router_interconnect" {
   variables {
     interfaces = {
       vlan = {
-        name                    = "vlan-interface"
-        router                  = "existing-router"
+        name                    = "dedicated"
+        router                  = "existing"
         interconnect_attachment = "projects/test-project/regions/europe-west1/interconnectAttachments/vlan"
         ip_range                = "169.254.20.1/30"
       }
     }
     peers = {
       vlan = {
-        name            = "vlan-peer"
-        router          = "existing-router"
+        name            = "dedicated"
+        router          = "existing"
         interface_key   = "vlan"
         peer_asn        = 65003
         peer_ip_address = "169.254.20.2"
@@ -140,7 +140,7 @@ run "existing_router_interconnect" {
     }
   }
   assert {
-    condition     = length(output.routers) == 0 && output.interfaces["vlan"].router == "existing-router" && length(google_compute_router_peer.this["vlan"].bfd) == 1
+    condition     = length(output.routers) == 0 && output.interfaces["vlan"].router == "existing" && length(google_compute_router_peer.this["vlan"].bfd) == 1
     error_message = "Configuration-only mode must support an existing Interconnect router without creating another router."
   }
 }
@@ -149,7 +149,7 @@ run "bad_router_key" {
   variables {
     interfaces = {
       bad = {
-        name       = "bad-interface"
+        name       = "invalid"
         router_key = "missing"
       }
     }
@@ -161,7 +161,7 @@ run "missing_router_choice" {
   variables {
     interfaces = {
       bad = {
-        name = "bad-interface"
+        name = "invalid"
       }
     }
   }
@@ -173,15 +173,15 @@ run "peer_interface_router_mismatch" {
   variables {
     interfaces = {
       primary = {
-        name       = "existing-interface"
-        router     = "router-one"
+        name       = "existing"
+        router     = "first"
         vpn_tunnel = "existing-tunnel"
       }
     }
     peers = {
       primary = {
-        name          = "wrong-peer"
-        router        = "router-two"
+        name          = "mismatch"
+        router        = "second"
         interface_key = "primary"
         peer_asn      = 65002
       }

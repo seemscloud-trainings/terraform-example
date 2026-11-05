@@ -9,11 +9,11 @@ run "gateways_only" {
   variables {
     gateways = {
       a = {
-        name    = "gateway-a"
+        name    = "atlas"
         network = "projects/project-a/global/networks/a"
       }
       b = {
-        name    = "gateway-b"
+        name    = "orion"
         project = "project-b"
         network = "projects/project-b/global/networks/b"
       }
@@ -29,11 +29,11 @@ run "ha_pair" {
   variables {
     gateways = {
       a = {
-        name    = "gateway-a"
+        name    = "atlas"
         network = "projects/project-a/global/networks/a"
       }
       b = {
-        name    = "gateway-b"
+        name    = "orion"
         project = "project-b"
         network = "projects/project-b/global/networks/b"
       }
@@ -44,35 +44,35 @@ run "ha_pair" {
     }
     tunnels = {
       a_primary = {
-        name                  = "a-primary"
+        name                  = "to-orion-primary"
         gateway_key           = "a"
         peer_gateway_key      = "b"
         vpn_gateway_interface = 0
-        router                = "projects/project-a/regions/europe-west1/routers/router-a"
+        router                = "projects/project-a/regions/europe-west1/routers/atlas"
         secret_key            = "primary"
       }
       a_secondary = {
-        name                  = "a-secondary"
+        name                  = "to-orion-secondary"
         gateway_key           = "a"
         peer_gateway_key      = "b"
         vpn_gateway_interface = 1
-        router                = "projects/project-a/regions/europe-west1/routers/router-a"
+        router                = "projects/project-a/regions/europe-west1/routers/atlas"
         secret_key            = "secondary"
       }
       b_primary = {
-        name                  = "b-primary"
+        name                  = "to-atlas-primary"
         gateway_key           = "b"
         peer_gateway_key      = "a"
         vpn_gateway_interface = 0
-        router                = "projects/project-b/regions/europe-west1/routers/router-b"
+        router                = "projects/project-b/regions/europe-west1/routers/orion"
         secret_key            = "primary"
       }
       b_secondary = {
-        name                  = "b-secondary"
+        name                  = "to-atlas-secondary"
         gateway_key           = "b"
         peer_gateway_key      = "a"
         vpn_gateway_interface = 1
-        router                = "projects/project-b/regions/europe-west1/routers/router-b"
+        router                = "projects/project-b/regions/europe-west1/routers/orion"
         secret_key            = "secondary"
       }
     }
@@ -103,7 +103,7 @@ run "existing_gateway_external_peer" {
         vpn_gateway_interface           = 0
         peer_external_gateway           = "projects/project-a/global/externalVpnGateways/onprem"
         peer_external_gateway_interface = 0
-        router                          = "existing-router"
+        router                          = "existing"
       }
     }
   }
@@ -124,7 +124,7 @@ run "write_only_secret" {
         vpn_gateway              = "projects/project-a/regions/europe-west1/vpnGateways/existing"
         vpn_gateway_interface    = 0
         peer_gcp_gateway         = "projects/project-b/regions/europe-west1/vpnGateways/existing"
-        router                   = "existing-router"
+        router                   = "existing"
         secret_mode              = "write_only"
         shared_secret_wo_version = "1"
       }
@@ -144,7 +144,7 @@ run "missing_psk" {
         vpn_gateway           = "projects/project-a/regions/europe-west1/vpnGateways/existing"
         vpn_gateway_interface = 0
         peer_gcp_gateway      = "projects/project-b/regions/europe-west1/vpnGateways/existing"
-        router                = "existing-router"
+        router                = "existing"
       }
     }
   }
@@ -162,7 +162,7 @@ run "invalid_ha_interface" {
         vpn_gateway           = "projects/project-a/regions/europe-west1/vpnGateways/existing"
         vpn_gateway_interface = 2
         peer_gcp_gateway      = "projects/project-b/regions/europe-west1/vpnGateways/existing"
-        router                = "existing-router"
+        router                = "existing"
       }
     }
   }
@@ -178,7 +178,7 @@ run "missing_write_only_psk" {
         vpn_gateway              = "projects/project-a/regions/europe-west1/vpnGateways/existing"
         vpn_gateway_interface    = 0
         peer_gcp_gateway         = "projects/project-b/regions/europe-west1/vpnGateways/existing"
-        router                   = "existing-router"
+        router                   = "existing"
         secret_mode              = "write_only"
         shared_secret_wo_version = "1"
       }
@@ -192,7 +192,7 @@ run "interconnect_gateway_interfaces" {
   variables {
     gateways = {
       interconnect = {
-        name    = "interconnect-ha"
+        name    = "dedicated"
         network = "projects/project-a/global/networks/interconnect"
         vpn_interfaces = {
           primary = {

@@ -11,6 +11,22 @@ kopiuj do katalogu domowego lub innych repozytoriów. Przeczytaj instrukcje
 repozytorium, stan Git, istniejące wejścia/wyjścia oraz wywołania zmienianego modułu.
 Dla konfiguracji środowiska używaj [terragrunt-structure](../terragrunt-structure/SKILL.md).
 
+## Nazwy zasobów w chmurze
+
+Nazwy nadawane zasobom muszą być krótkie i opisowe, np. `atlas`, `orion`,
+`application`, `to-orion-primary`. Nie umieszczaj w nich typu zasobu ani skrótów
+tego typu: `vpn`, `vpc`, `network`, `subnet`, `router`, `gateway`, `interface`, `peer`.
+Nie umieszczaj w nazwach środowiska, projektu, regionu ani strefy; nie doklejaj
+prefiksów ani sufiksów z tych wartości. Kontekst przekazuj osobnymi argumentami.
+Reguła obejmuje konfigurację env, przykłady i nazwy zasobów w danych testowych.
+Nazwy pól API, typy resource, nazwy modułów i katalogi określające ich funkcję
+pozostają techniczne, np. `network`, `vpn-ha`, `subnetworks`.
+Moduł przyjmuje jawne `name` bez modyfikacji i nie narzuca tej konwencji walidacją
+odrzucającą poprawne nazwy istniejących zasobów użytkownika.
+Sprawdzaj unikalność w zakresie wymaganym przez GCP: dwie VPC w tym samym
+projekcie muszą mieć różne nazwy, np. `atlas` i `orion`. Nie rozwiązuj kolizji
+przez dopisywanie regionu lub typu zasobu. Zachowuj stabilne klucze map i stan.
+
 ## Granice odpowiedzialności
 
 Moduły znajdują się w `modules/<funkcja>`. Nazwa opisuje funkcję bez prefiksu

@@ -1,7 +1,7 @@
 mock_provider "google" {
   mock_resource "google_compute_network" {
     defaults = {
-      self_link = "https://www.googleapis.com/compute/v1/projects/unit-project/global/networks/unit-vpc"
+      self_link = "https://www.googleapis.com/compute/v1/projects/unit-project/global/networks/atlas"
     }
   }
 }
@@ -10,14 +10,14 @@ variables {
   project = "unit-project"
   region  = "europe-west1"
   network = {
-    name = "unit-vpc"
+    name = "atlas"
   }
 }
 
 run "network_without_subnets" {
   command = apply
   assert {
-    condition     = length(output.subnetworks) == 0 && output.network.name == "unit-vpc" && !google_compute_network.this.auto_create_subnetworks
+    condition     = length(output.subnetworks) == 0 && output.network.name == "atlas" && !google_compute_network.this.auto_create_subnetworks
     error_message = "Default custom VPC must preserve the supplied name and create no implicit subnet resources."
   }
 }
@@ -27,11 +27,11 @@ run "named_subnets" {
   variables {
     subnetworks = {
       application = {
-        name          = "application-subnet"
+        name          = "application"
         ip_cidr_range = "10.10.1.0/24"
       }
       database = {
-        name          = "database-subnet"
+        name          = "database"
         ip_cidr_range = "10.10.2.0/24"
         region        = "europe-west4"
       }
@@ -42,7 +42,7 @@ run "named_subnets" {
     error_message = "Subnet must default to the created network and effective project."
   }
   assert {
-    condition     = output.subnetworks["application"].name == "application-subnet" && output.subnetworks["application"].region == "europe-west1" && output.subnetworks["database"].region == "europe-west4"
+    condition     = output.subnetworks["application"].name == "application" && output.subnetworks["application"].region == "europe-west1" && output.subnetworks["database"].region == "europe-west4"
     error_message = "User names and regional overrides must be preserved."
   }
 }
@@ -52,16 +52,16 @@ run "insert_between_existing_keys" {
   variables {
     subnetworks = {
       database = {
-        name          = "database-subnet"
+        name          = "database"
         ip_cidr_range = "10.10.2.0/24"
         region        = "europe-west4"
       }
       batch = {
-        name          = "batch-subnet"
+        name          = "batch"
         ip_cidr_range = "10.10.3.0/24"
       }
       application = {
-        name          = "application-subnet"
+        name          = "application"
         ip_cidr_range = "10.10.1.0/24"
       }
     }
@@ -77,11 +77,11 @@ run "remove_only_batch" {
   variables {
     subnetworks = {
       application = {
-        name          = "application-subnet"
+        name          = "application"
         ip_cidr_range = "10.10.1.0/24"
       }
       database = {
-        name          = "database-subnet"
+        name          = "database"
         ip_cidr_range = "10.10.2.0/24"
         region        = "europe-west4"
       }
@@ -97,7 +97,7 @@ run "advanced_fields_and_secondary_maps" {
   command = apply
   variables {
     network = {
-      name                            = "unit-vpc"
+      name                            = "atlas"
       routing_mode                    = "GLOBAL"
       mtu                             = 1500
       bgp_best_path_selection_mode    = "STANDARD"
@@ -106,7 +106,7 @@ run "advanced_fields_and_secondary_maps" {
     }
     subnetworks = {
       application = {
-        name                             = "application-subnet"
+        name                             = "application"
         ip_cidr_range                    = "10.10.1.0/24"
         private_ip_google_access         = false
         send_secondary_ip_range_if_empty = true
@@ -116,11 +116,11 @@ run "advanced_fields_and_secondary_maps" {
         }
         secondary_ip_range = {
           pods = {
-            range_name    = "pods-range"
+            range_name    = "pods"
             ip_cidr_range = "10.20.0.0/20"
           }
           services = {
-            range_name    = "services-range"
+            range_name    = "services"
             ip_cidr_range = "10.21.0.0/24"
           }
         }
@@ -141,19 +141,19 @@ run "explicit_project_region_and_network" {
   command = apply
   variables {
     network = {
-      name    = "unit-vpc"
+      name    = "atlas"
       project = "host-project"
     }
     subnetworks = {
       external = {
-        name          = "external-subnet"
+        name          = "external"
         project       = "external-project"
         region        = "europe-west4"
         network       = "projects/external-project/global/networks/existing-vpc"
         ip_cidr_range = "10.30.0.0/24"
       }
       inherited = {
-        name          = "inherited-subnet"
+        name          = "inherited"
         ip_cidr_range = "10.31.0.0/24"
       }
     }

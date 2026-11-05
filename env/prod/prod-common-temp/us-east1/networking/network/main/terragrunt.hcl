@@ -19,12 +19,12 @@ inputs = {
   project     = local.project.inputs.project
   region      = local.region.inputs.region
   network = {
-    name         = "prod-us-east1-main-vpc"
+    name         = "orion"
     routing_mode = "GLOBAL"
   }
   subnetworks = {
     main = {
-      name          = "prod-us-east1-main-subnet"
+      name          = "orion"
       ip_cidr_range = "10.81.0.0/24"
     }
   }
