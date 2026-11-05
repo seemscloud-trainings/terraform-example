@@ -3,8 +3,8 @@ locals {
 
   # Preserve existing VPC and EU-US state locations; new units use their own path.
   legacy_state_paths = {
-    "env/prod/prod-common-temp/europe-west1/network/vpn-eu-vpc"              = "env/prod/prod-common-temp/europe-west1/network"
-    "env/prod/prod-common-temp/us-east1/network/vpn-us-vpc"                  = "env/prod/prod-common-temp/us-east1/network"
+    "env/prod/prod-common-temp/europe-west1/network/main"                    = "env/prod/prod-common-temp/europe-west1/network"
+    "env/prod/prod-common-temp/us-east1/network/main"                        = "env/prod/prod-common-temp/us-east1/network"
     "env/prod/prod-common-temp/europe-west1/connections/to-us-east1/tunnels" = "env/prod/prod-common-temp/europe-west1/tunnel"
     "env/prod/prod-common-temp/europe-west1/connections/to-us-east1/bgp"     = "env/prod/prod-common-temp/europe-west1/router-config"
     "env/prod/prod-common-temp/us-east1/connections/to-europe-west1/tunnels" = "env/prod/prod-common-temp/us-east1/tunnel"

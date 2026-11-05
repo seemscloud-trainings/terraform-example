@@ -29,5 +29,5 @@ inputs = {
 }
 
 dependency "network" {
-  config_path = "../network/vpn-us-vpc"
+  config_path = "../network/main"
 }
