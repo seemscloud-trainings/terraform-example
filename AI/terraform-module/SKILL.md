@@ -43,7 +43,8 @@ trybów i wrażliwość danych; nie obchodź ograniczeń przez local-exec lub CL
   providera oraz bloki `provider`. Konfiguracja projektu/regionu pochodzi z wejść.
   Dla nowego modułu sprawdź najnowszą stabilną wersję w oficjalnym Registry.
   Istniejące przypięcia zmieniaj tylko w zakresie zadania.
-- `v-provider.tf`: typowana konfiguracja providera, np. obiekt `provider_config`.
+- `v-provider.tf`: osobne typowane wejścia `project`, `region` i opcjonalne
+  argumenty providera. Nie opakowuj ich w zbiorczy obiekt konfiguracji.
   Preferuj ADC/standardowy łańcuch poświadczeń i opcjonalną impersonację. Nie
   zapisuj sekretów w repozytorium.
 - `r-<zasób>.tf`: deklaracje resource konkretnego rodzaju, np. `r-network.tf`,

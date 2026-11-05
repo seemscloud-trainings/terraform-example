@@ -1,20 +1,69 @@
-variable "provider_config" {
-  type = object({
-    project                               = string
-    region                                = optional(string)
-    impersonate_service_account           = optional(string)
-    impersonate_service_account_delegates = optional(list(string))
-    billing_project                       = optional(string)
-    user_project_override                 = optional(bool)
-    default_labels                        = optional(map(string))
-    request_timeout                       = optional(string)
-    request_reason                        = optional(string)
-    universe_domain                       = optional(string)
-    compute_custom_endpoint               = optional(string)
-  })
+variable "project" {
+  type        = string
   nullable    = false
-  description = "Provider defaults. Use ADC or impersonation; never commit credentials."
+  description = "Default GCP project; individual resources may override it."
 }
+
+variable "region" {
+  type        = string
+  default     = null
+  description = "Optional Google provider region setting."
+}
+
+variable "impersonate_service_account" {
+  type        = string
+  default     = null
+  description = "Optional Google provider impersonate_service_account setting."
+}
+
+variable "impersonate_service_account_delegates" {
+  type        = list(string)
+  default     = null
+  description = "Optional Google provider impersonate_service_account_delegates setting."
+}
+
+variable "billing_project" {
+  type        = string
+  default     = null
+  description = "Optional Google provider billing_project setting."
+}
+
+variable "user_project_override" {
+  type        = bool
+  default     = null
+  description = "Optional Google provider user_project_override setting."
+}
+
+variable "default_labels" {
+  type        = map(string)
+  default     = null
+  description = "Optional Google provider default_labels setting."
+}
+
+variable "request_timeout" {
+  type        = string
+  default     = null
+  description = "Optional Google provider request_timeout setting."
+}
+
+variable "request_reason" {
+  type        = string
+  default     = null
+  description = "Optional Google provider request_reason setting."
+}
+
+variable "universe_domain" {
+  type        = string
+  default     = null
+  description = "Optional Google provider universe_domain setting."
+}
+
+variable "compute_custom_endpoint" {
+  type        = string
+  default     = null
+  description = "Optional Google provider compute_custom_endpoint setting."
+}
+
 
 variable "network" {
   type = object({

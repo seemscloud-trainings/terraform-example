@@ -10,14 +10,10 @@ locals {
   vpn               = read_terragrunt_config(find_in_parent_folders("vpn.hcl"))
   connection_config = read_terragrunt_config(find_in_parent_folders("connection.hcl"))
   connection        = local.vpn.locals.connections[local.connection_config.locals.connection_key]
-  site              = local.vpn.locals.sites[local.region.inputs.region_name]
-  endpoint          = local.connection.endpoints[local.region.inputs.region_name]
-  peer_region       = one([for region in keys(local.connection.endpoints) : region if region != local.region.inputs.region_name])
+  site              = local.vpn.locals.sites[local.region.inputs.region]
+  endpoint          = local.connection.endpoints[local.region.inputs.region]
+  peer_region       = one([for region in keys(local.connection.endpoints) : region if region != local.region.inputs.region])
   peer              = local.vpn.locals.sites[local.peer_region]
-  provider_config = {
-    project = local.project.inputs.project_id
-    region  = local.region.inputs.region_name
-  }
 }
 
 terraform {
@@ -41,7 +37,8 @@ dependency "peer_gateway" {
 }
 
 inputs = {
-  provider_config = local.provider_config
+  project = local.project.inputs.project
+  region  = local.region.inputs.region
   tunnels = { for key, tunnel in local.endpoint.tunnels : key => {
     name                  = tunnel.name
     vpn_gateway           = dependency.gateway.outputs.gateways.main.self_link

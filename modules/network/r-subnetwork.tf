@@ -14,7 +14,7 @@ resource "google_compute_subnetwork" "this" {
   private_ipv6_google_access       = each.value.private_ipv6_google_access
   project                          = each.value.project != null ? each.value.project : local.network_project
   purpose                          = each.value.purpose
-  region                           = each.value.region != null ? each.value.region : var.provider_config.region
+  region                           = each.value.region != null ? each.value.region : var.region
   reserved_internal_range          = each.value.reserved_internal_range
   resolve_subnet_mask              = each.value.resolve_subnet_mask
   role                             = each.value.role

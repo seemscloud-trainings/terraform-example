@@ -6,7 +6,7 @@ VPCs, Interconnect attachments or router appliances. Follow the repository-local
 
 ## Inputs
 
-- `provider_config`: default project/region and provider configuration; same
+- `project`, `region` and separate optional provider variables: same
   contract as `modules/network`. Credentials come from ADC or impersonation.
 - `routers`: map of router objects with explicit names. Empty by default.
   BGP is optional, so a router can be created for a separate Cloud NAT module.

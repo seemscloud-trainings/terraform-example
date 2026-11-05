@@ -8,11 +8,7 @@ locals {
   project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
   vpn     = read_terragrunt_config(find_in_parent_folders("vpn.hcl"))
-  site    = local.vpn.locals.sites[local.region.inputs.region_name]
-  provider_config = {
-    project = local.project.inputs.project_id
-    region  = local.region.inputs.region_name
-  }
+  site    = local.vpn.locals.sites[local.region.inputs.region]
 }
 
 terraform {
@@ -24,7 +20,8 @@ dependency "network" {
 }
 
 inputs = {
-  provider_config = local.provider_config
+  project = local.project.inputs.project
+  region  = local.region.inputs.region
   gateways = { main = {
     name               = local.site.gateway_name
     network            = dependency.network.outputs.network.self_link

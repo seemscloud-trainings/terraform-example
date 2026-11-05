@@ -6,8 +6,8 @@ resource "google_compute_router" "this" {
   name                          = local.naming.routers[each.key]
   ncc_gateway                   = var.routers[each.key].ncc_gateway
   network                       = var.routers[each.key].network
-  project                       = var.routers[each.key].project != null ? var.routers[each.key].project : var.provider_config.project
-  region                        = var.routers[each.key].region != null ? var.routers[each.key].region : var.provider_config.region
+  project                       = var.routers[each.key].project != null ? var.routers[each.key].project : var.project
+  region                        = var.routers[each.key].region != null ? var.routers[each.key].region : var.region
   dynamic "bgp" {
     for_each = var.routers[each.key].bgp == null ? [] : [var.routers[each.key].bgp]
     iterator = item_bgp

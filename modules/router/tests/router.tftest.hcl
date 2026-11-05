@@ -1,6 +1,7 @@
 mock_provider "google" {}
 variables {
-  provider_config = { project = "test-project", region = "europe-west1" }
+  project = "test-project"
+  region  = "europe-west1"
 }
 run "empty" {
   command = apply

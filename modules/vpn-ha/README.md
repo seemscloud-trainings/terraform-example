@@ -5,7 +5,7 @@ BGP peer, VPC, firewall or static public address is created here.**
 
 ## Inputs and resources
 
-- `provider_config`: default project/region and provider options.
+- `project`, `region` and separate optional provider variables.
 - `gateways`: map of `google_compute_ha_vpn_gateway` configurations. Every name
   is explicit. Optional IPv4/IPv6 settings, labels, Interconnect interface
   attachments, resource tags, deletion policy and timeouts are supported.

@@ -7,10 +7,8 @@ mock_provider "google" {
 }
 
 variables {
-  provider_config = {
-    project = "unit-project"
-    region  = "europe-west1"
-  }
+  project = "unit-project"
+  region  = "europe-west1"
   network = { name = "unit-vpc" }
 }
 

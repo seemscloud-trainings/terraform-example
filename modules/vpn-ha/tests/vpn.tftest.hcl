@@ -1,7 +1,8 @@
 mock_provider "google" {}
 variables {
   write_only_shared_secrets = {}
-  provider_config           = { project = "project-a", region = "europe-west1" }
+  project                   = "project-a"
+  region                    = "europe-west1"
 }
 run "gateways_only" {
   command = apply

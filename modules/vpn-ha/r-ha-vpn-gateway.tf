@@ -6,8 +6,8 @@ resource "google_compute_ha_vpn_gateway" "this" {
   labels             = var.gateways[each.key].labels
   name               = local.naming.gateways[each.key]
   network            = var.gateways[each.key].network
-  project            = var.gateways[each.key].project != null ? var.gateways[each.key].project : var.provider_config.project
-  region             = var.gateways[each.key].region != null ? var.gateways[each.key].region : var.provider_config.region
+  project            = var.gateways[each.key].project != null ? var.gateways[each.key].project : var.project
+  region             = var.gateways[each.key].region != null ? var.gateways[each.key].region : var.region
   stack_type         = var.gateways[each.key].stack_type
   dynamic "params" {
     for_each = var.gateways[each.key].params == null ? [] : [var.gateways[each.key].params]

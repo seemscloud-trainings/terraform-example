@@ -2,10 +2,8 @@ mock_provider "google" {}
 run "complete_pair_without_cycles" {
   command = apply
   variables {
-    provider_config = {
-      project = "project-a"
-      region  = "europe-west1"
-    }
+    project = "project-a"
+    region = "europe-west1"
 
     routers = {
       a = {

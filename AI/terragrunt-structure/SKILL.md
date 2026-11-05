@@ -60,11 +60,6 @@ terraform_binary = "terraform"
 locals {
   project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-
-  provider_config = {
-    project = local.project.inputs.project_id
-    region  = local.region.inputs.region_name
-  }
 }
 
 terraform {
@@ -72,7 +67,8 @@ terraform {
 }
 
 inputs = {
-  provider_config = local.provider_config
+  project = local.project.inputs.project
+  region  = local.region.inputs.region
 
   network = {
     name = "example-vpc"
@@ -85,7 +81,9 @@ inputs = {
 Odczytuj projekt i region z najbliższych plików kontekstowych. Wspólne dane jednej
 konfiguracji, np. obu końców VPN, trzymaj w jednym tematycznym pliku `.hcl`, jeśli
 eliminuje to rzeczywiste duplikowanie. Nie przenoś tam niepowiązanych ustawień.
-Przekazuj tylko wejścia, które przyjmuje moduł. Nie wstawiaj nieużywanego kontekstu
+Przekazuj tylko wejścia, które przyjmuje moduł. Projekt i region przekazuj bezpośrednio, np. `project = local.project.inputs.project`
+i `region = local.region.inputs.region`. Nie buduj zbiorczego obiektu konfiguracji
+providera w locals ani inputs. Nie wstawiaj nieużywanego kontekstu
 ani locals bez potrzeby. Definicje i wersje providerów pozostają w module, jeśli
 taki jest jego kontrakt; nie generuj drugiego konkurencyjnego providera.
 

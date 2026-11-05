@@ -5,7 +5,8 @@ Creates one GCP VPC and zero or more subnets. Follows the repository-local skill
 
 ## Interface
 
-- `provider_config`: required object with `project`; optional default `region`,
+- `project`: required default GCP project. `region` and the other provider inputs
+  are optional separate variables, including
   impersonation, billing, labels, timeout and endpoint settings. Authentication
   uses ADC or impersonation. No credential is stored in the module.
 - `network`: required object with an explicit `name`. Custom subnet mode

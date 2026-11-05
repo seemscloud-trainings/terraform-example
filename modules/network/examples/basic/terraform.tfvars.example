@@ -1,7 +1,5 @@
-provider_config = {
-  project = "prod-common-temp"
-  region  = "europe-west1"
-}
+project = "prod-common-temp"
+region  = "europe-west1"
 
 network = {
   name         = "training-vpc"
