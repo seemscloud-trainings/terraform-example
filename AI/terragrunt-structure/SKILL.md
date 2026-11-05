@@ -406,10 +406,18 @@ zweryfikuj również brak eksportu subnetów pominiętych przez filtr.
 
 Moduł network-peering tworzy jedną stronę połączenia, google_compute_network_peering.this.
 Wejście peering i output peering są pojedynczymi obiektami. Dla dwóch VPC potrzebne
-są dwie jednostki global/networking/peering/<nazwa>/, każda z zależnościami do obu
+są dwie jednostki global/networking/peering/<projekt-docelowy>/<vpc-źródłowa>-to-<vpc-docelowa>/, każda z zależnościami do obu
 sieci i ich self_link. Jednostki peeringu nie zależą wzajemnie od siebie.
 Prywatne trasy subnetów są wymieniane automatycznie. Import/export custom routes
 nie filtruje prywatnych subnetów. Nie dodawaj fikcyjnego include_export_ranges.
 Dostęp do usług ogranicza firewall. Nie łącz jednego scenariusza ćwiczeń z innym
 bez polecenia użytkownika. Sam destroy VM pozostawiający jej kod oznacza, że
 kolejny apply tej jednostki może ją odtworzyć.
+
+Katalog bezpośrednio pod peering/ zawiera pełny identyfikator projektu docelowego.
+Kolejny katalog pokazuje kierunek VPC, np. aurora-to-nebula. Projekt źródłowy
+wynika z nadrzędnego project.hcl. Dla połączenia w jednym projekcie jego ID
+występuje także jako katalog docelowy; nie zastępuj go nieuzgodnionym aliasem.
+Dependency network wskazuje źródłową VPC, a dependency peer docelową VPC w
+właściwym projekcie. Nie wyciągaj nazw zasobów z nazwy folderu i nie zmieniaj
+nazw zasobów GCP przy porządkowaniu ścieżek. Zachowuj historyczny backend prefix.

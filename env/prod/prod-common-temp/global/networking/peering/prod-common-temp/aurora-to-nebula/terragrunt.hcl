@@ -17,7 +17,7 @@ inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
   peering = {
-    name                 = "to-aurora"
+    name                 = "to-nebula"
     network              = dependency.network.outputs.network.self_link
     peer_network         = dependency.peer.outputs.network.self_link
     import_custom_routes = false
@@ -26,9 +26,9 @@ inputs = {
 }
 
 dependency "network" {
-  config_path = "../../network/nebula"
+  config_path = "../../../network/aurora"
 }
 
 dependency "peer" {
-  config_path = "../../network/aurora"
+  config_path = "../../../network/nebula"
 }
