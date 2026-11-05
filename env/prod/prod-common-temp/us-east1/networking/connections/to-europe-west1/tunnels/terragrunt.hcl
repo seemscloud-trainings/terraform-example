@@ -38,7 +38,7 @@ inputs = {
       ike_version           = 2
       params = {
         resource_manager_tags = {
-          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : dependency.tags.outputs.keys[key] => dependency.tags.outputs.values["${key}/${value}"]
+          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
         }
       }
       secret_key = key
@@ -56,8 +56,4 @@ dependency "gateway" {
 
 dependency "peer_gateway" {
   config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.connection.peer_region}/networking/vpn-gateway"
-}
-
-dependency "tags" {
-  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/tags"
 }

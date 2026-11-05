@@ -29,7 +29,7 @@ inputs = {
       network = dependency.network.outputs.network.self_link
       params = {
         resource_manager_tags = {
-          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : dependency.tags.outputs.keys[key] => dependency.tags.outputs.values["${key}/${value}"]
+          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
         }
       }
       gateway_ip_version = "IPV4"
@@ -40,8 +40,4 @@ inputs = {
 
 dependency "network" {
   config_path = "../network/main"
-}
-
-dependency "tags" {
-  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/tags"
 }

@@ -28,7 +28,7 @@ inputs = {
     routing_mode = "GLOBAL"
     params = {
       resource_manager_tags = {
-        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags) : dependency.tags.outputs.keys[key] => dependency.tags.outputs.values["${key}/${value}"]
+        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags) : "${local.project.inputs.project}/${key}" => value
       }
     }
   }
@@ -37,14 +37,10 @@ inputs = {
       name = "orion"
       params = {
         resource_manager_tags = {
-          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : dependency.tags.outputs.keys[key] => dependency.tags.outputs.values["${key}/${value}"]
+          for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags, local.region.inputs.tags) : "${local.project.inputs.project}/${key}" => value
         }
       }
       ip_cidr_range = "10.81.0.0/24"
     }
   }
-}
-
-dependency "tags" {
-  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/tags"
 }

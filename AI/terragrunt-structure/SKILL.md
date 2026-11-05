@@ -17,9 +17,14 @@ w locals, a w inputs przekazuj wyłącznie local.environment/project/region,
 local.labels i local.tags. Nie powtarzaj wartości kontekstu w mapach.
 Jednostki scalają mapy w kolejności environment → project → region.
 Tags w tych plikach są logicznymi nazwami i wartościami, nie identyfikatorami GCP.
-Projektowa jednostka tags tworzy klucze i wartości przez modules/tags; zbiera
-regiony z */region.hcl bez ponownego ręcznego wpisywania listy regionów.
-Przekazuj resource_manager_tags jako ID z dependency.tags.outputs.keys/values.
+Mapy tags odczytuj z tych samych plików kontekstowych przez locals i przekazuj
+bezpośrednio do resource_manager_tags danego zasobu. Używaj namespaced keys:
+"${local.project.inputs.project}/${key}" => value dla tagów tego projektu.
+Nie twórz jednostki ani modułu tags, nie dodawaj dependency.tags i nie twórz
+kluczy/wartości tagów automatycznie. Referencje wskazują istniejące tagi GCP;
+przekazanie mapy nie tworzy TagKey/TagValue. Nie deklaruj gotowości wdrożenia,
+jeśli istnienie tych tagów nie zostało sprawdzone. params.resource_manager_tags
+służy do przypięcia przy tworzeniu zasobu, nie do aktualizacji istniejących tagów.
 Labels przekazuj przez default_labels do zasobów, które je obsługują.
 VPC jest globalna: otrzymuje tylko tagi environment i project. Subnety, routery,
 bramy i tunele otrzymują także region. Interfejsy i peery BGP nie obsługują tych
@@ -41,6 +46,19 @@ odrzucającą poprawne nazwy istniejących zasobów użytkownika.
 Sprawdzaj unikalność w zakresie wymaganym przez GCP: dwie VPC w tym samym
 projekcie muszą mieć różne nazwy, np. `atlas` i `orion`. Nie rozwiązuj kolizji
 przez dopisywanie regionu lub typu zasobu. Zachowuj stabilne klucze map i stan.
+
+## Granice katalogów
+
+Zachowuj hierarchię env/<środowisko>/<projekt>/<region>/<obszar>/<jednostka>.
+Bezpośrednio w env są katalogi środowisk, w środowisku katalogi projektów,
+a w projekcie katalogi regionów. Na tych poziomach dopuszczone są odpowiednie
+pliki kontekstowe environment.hcl, project.hcl i region.hcl.
+Nie dodawaj tam katalogów usługowych, np. tags, network, router lub vpn-gateway.
+Jednostki sieciowe należą do <region>/networking/. Globalny zakres zasobu GCP
+nie upoważnia do tworzenia nowego poziomu hierarchii ani katalogu przy projekcie.
+Nie dodawaj jednostek pomocniczych dla metadanych odczytywanych z plików
+kontekstowych. Nie zmieniaj hierarchii bez polecenia użytkownika.
+Przy przenoszeniu jednostki popraw wszystkie dependency i zachowaj klucz stanu.
 
 ## Obecny układ
 
