@@ -41,6 +41,17 @@ Sprawdzaj unikalność w zakresie wymaganym przez GCP: dwie VPC w tym samym
 projekcie muszą mieć różne nazwy, np. `atlas` i `orion`. Nie rozwiązuj kolizji
 przez dopisywanie regionu lub typu zasobu. Zachowuj stabilne klucze map i stan.
 
+## Sposób tworzenia i rozszerzania
+
+Najpierw wybierz odpowiedzialność modułu i sprawdź istniejący kontrakt. Rozbudowa
+argumentów nie może zmieniać liczby zasobów głównych ani dokładać tworzenia ich
+zależności. W szczególności dodatkowe opcje routera nie uzasadniają mapy routerów,
+a obsługa kolejnego połączenia nie uzasadnia mapy bram w vpn-ha.
+Nowe pola prowadź przez typ wejścia, przypisanie w resource i odpowiedni przykład
+lub test zachowania. Nie wystarczy zadeklarować zmiennej bez jej użycia.
+Jeżeli zmieniasz publiczny kontrakt, w tej samej zmianie popraw wszystkie wywołania,
+przykłady, testy oraz oba skille; usuń sprzeczne instrukcje zamiast je dopisywać.
+
 ## Granice odpowiedzialności
 
 Moduły znajdują się w `modules/<funkcja>`. Nazwa opisuje funkcję bez prefiksu
@@ -65,6 +76,17 @@ Mapy pozostają dla subnetów, tuneli, interfejsów, peerów i bloków podrzędn
 Konfiguracja interfejsów/BGP jest osobna, ponieważ zależy od istniejących tuneli;
 nie dodawaj jej do tworzenia routera, tworząc cykl router → tunel → router.
 Nie dodawaj backendu ani konfiguracji środowiska do modułów.
+
+| Moduł | Wejście zasobu | Output zasobu |
+|---|---|---|
+| network | network: object, subnetworks: map(object) | network: object, subnetworks: map(object) |
+| router | router: object | router: object |
+| vpn-ha | gateway: object | gateway: object |
+| router-connection | router: string, interfaces i peers: map(object) | interfaces i peers: map(object) |
+| vpn-tunnel | tunnels: map(object), osobne mapy PSK | tunnels: map(object) |
+
+Dla atomowych wejść nie stosuj default = {} lub null; wymagaj obiektu z nazwą.
+Opcjonalne bloki wewnątrz zasobu nie zmieniają atomowości samego zasobu.
 
 ## Argumenty i typowanie
 
@@ -113,6 +135,10 @@ np. `vpn_interfaces.id` wewnątrz HA gateway jest prawidłowym argumentem.
 
 Nazwy plików są małymi literami: `r-network.tf`, `v-subnetwork.tf`,
 `r-proxy-https.tf`, `v-proxy-https.tf`. Nie twórz `l-*` ani pustych locals.
+Para r-<zasób>.tf i v-<zasób>.tf ma ten sam człon nazwy: np.
+r-ha-vpn-gateway.tf i v-ha-vpn-gateway.tf. Zmienne wspólnego kontekstu są wyjątkiem.
+W locals-naming.tf tylko przekaż jawne name; nie mieszaj tam tagów, adresacji,
+wyboru projektu/regionu ani generowania nazw.
 Blok resource nazywaj `this`; rozróżniane funkcje mogą mieć nazwy `proxy_http`,
 `proxy_https`. Każdy tworzony zasób otrzymuje jawne `name` od użytkownika.
 Nie dodawaj prefiksów/sufiksów, numerów ani nazwy wyliczonej z klucza mapy.
@@ -190,7 +216,9 @@ przejść mimo pominięcia opcjonalnej funkcji.
 Provider jest konfigurowany wewnątrz modułu; module call nie może więc używać
 count/for_each/depends_on. Root mock nie musi zastąpić providera zagnieżdżonego.
 W kopiach testowych pomiń provider.tf, ale zachowaj versions.tf. Wykrywaj
-pozostawione bloki provider również na początku pliku.
+pozostawione bloki provider również na początku pliku. Przy zmianie podziału modułów
+aktualizuj listę modułów i ścieżki w tym teście; nie pozostawiaj starego testu,
+który omija nowo wydzielony moduł.
 Przy testach złożenia użyj izolowanych kopii bez konfiguracji providerów, przekaż
 mock jawnie i zablokuj prawdziwe API/poświadczenia. Wzorem jest
 `modules/vpn-ha/tests/verify_composition.py`.

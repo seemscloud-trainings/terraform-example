@@ -81,14 +81,16 @@ env/<środowisko>/
             ├── network/<nazwa-jednostki>/terragrunt.hcl
             ├── router/<nazwa-jednostki>/terragrunt.hcl
             ├── vpn-gateway/<nazwa-jednostki>/terragrunt.hcl
-            └── connections/to-<peer-region>/
+            └── connections/<nazwa-połączenia>/
                 ├── connection.hcl
                 ├── tunnels/terragrunt.hcl
                 └── bgp/terragrunt.hcl
 ```
 
 Nie przywracaj pojedynczego regionalnego `tunnel` ani `router-config` zakładającego
-jednego peera. Sieć, router i brama są współdzielone przez połączenia regionu.
+jednego peera. Sieć, router i brama mogą być współdzielone przez połączenia;
+każde połączenie wskazuje konkretne potrzebne jednostki. Nie twórz ich ponownie
+na każde połączenie ani nie wymuszaj współdzielenia, gdy użytkownik chce osobne.
 Każdy router i brama również ma osobną jednostkę oraz stan.
 Każda VPC ma osobną atomową jednostkę network/<nazwa-jednostki>/ i osobny stan.
 Nazwa katalogu jest stabilnym identyfikatorem jednostki, np. main; nie musi być
@@ -136,7 +138,52 @@ inputs = {
 }
 ```
 
-Analogicznie project.hcl używa local.project, a region.hcl local.region.
+project.hcl:
+
+```hcl
+locals {
+  project = "prod-common-temp"
+
+  labels = {
+    project = local.project
+  }
+
+  tags = {
+    project = local.project
+  }
+}
+
+inputs = {
+  project = local.project
+  labels  = local.labels
+  tags    = local.tags
+}
+```
+
+region.hcl:
+
+```hcl
+locals {
+  region = "europe-west1"
+
+  labels = {
+    region = local.region
+  }
+
+  tags = {
+    region = local.region
+  }
+}
+
+inputs = {
+  region = local.region
+  labels = local.labels
+  tags   = local.tags
+}
+```
+
+Nazwy środowiska, projektu i regionu powyżej są przykładem; dla nowej jednostki
+odczytaj jej najbliższe pliki kontekstowe. Nie kopiuj tych literałów do jednostek.
 Przykład jednostki tworzącej globalną VPC:
 
 ```hcl
@@ -179,7 +226,9 @@ Dodatkowe ustawienia przekazuj wyłącznie zgodnie z wejściami modułu. Provide
 wersja należą do modułu — nie generuj konkurencyjnej konfiguracji w env.
 W module `versions.tf` zawiera `terraform.required_version` i `required_providers`;
 `provider.tf` zawiera wyłącznie bloki konfiguracji `provider`.
-Nazwy i parametry usług mogą pochodzić z tematycznego pliku odczytanego w locals.
+Nie wynoś nazw, CIDR, ASN ani argumentów zasobów do nowych zbiorczych plików.
+Wyjątkiem jest istniejący connection.hcl współdzielony przez tunnels i bgp
+konkretnego połączenia. Nie przywracaj sites.hcl, vpn.hcl ani networking.hcl.
 Nie dodawaj nieużywanych locals ani nie wymyślaj automatycznego prefiksowania nazw.
 
 ## Zależności i granice projektów
@@ -226,6 +275,9 @@ połączeniami na tym samym routerze. Graf dependency musi pozostać acykliczny.
 
 ## Ograniczenia obecnego env
 
+Obecne nazwy katalogów to to-us-east1 i to-europe-west1; nie są regułą ograniczającą
+liczbę połączeń. Kilka połączeń do tego samego regionu otrzymuje różne stabilne
+nazwy jednostek, a nie jedną współdzieloną konfigurację z nadpisywanymi wartościami.
 Obecne połączenia wskazują katalogi router/main i vpn-gateway/main. Nowe
 połączenie może wskazać inną jednostkę. Nie zakładaj jednej bramy/routera na region;
 wybieraj odpowiednią ścieżkę dependency i korzystaj z jej pojedynczego outputu.
@@ -269,6 +321,19 @@ nie używaj go przypadkiem przy wielu różnych plikach. Nie loguj sekretów.
 
 Nie twórz README.md; opis konwencji utrzymuj w lokalnych skillach AI/.
 Nie instaluj tych skillów globalnie.
+
+## Tworzenie kolejnej jednostki
+
+1. Wybierz istniejący moduł według odpowiedzialności i przeczytaj jego wejścia
+   oraz outputy. Nie zmieniaj atomowego modułu na mapę dla wygody wywołania.
+2. Utwórz jednostkę pod właściwym regionem i obszarem. Dla sieci, routera i bramy
+   dodaj osobny katalog pod network/, router/ lub vpn-gateway/.
+3. Odczytaj kontekst przez locals, przekaż go do inputs i umieść jawne argumenty
+   zasobu w tej jednostce. Dodaj labels/tagi zgodnie z obsługą zasobu i zakresem.
+4. Wskaż konkretne zależności i ich outputy, a bloki dependency zapisz na końcu.
+   Dla sieci/routera/bramy używaj pojedynczego outputu, bez wyboru klucza main.
+5. Sprawdź graf, unikalność nazwy i stanu oraz kolizje adresacji. Kopia jednostki
+   nie może zachować backendu oryginału ani otrzymać jego wyjątku migracyjnego.
 
 ## Weryfikacja i zakres pracy
 
