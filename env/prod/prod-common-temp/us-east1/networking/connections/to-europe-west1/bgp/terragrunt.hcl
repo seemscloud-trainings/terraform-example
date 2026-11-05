@@ -25,29 +25,11 @@ terraform {
 }
 
 dependency "router" {
-  config_path                             = "../../../router"
-  skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
-  mock_outputs_allowed_terraform_commands = ["validate", "render"]
-  mock_outputs = {
-    routers = { main = {
-      name      = local.site.router_name
-      project   = local.project.inputs.project_id
-      region    = local.region.inputs.region_name
-      self_link = "https://www.googleapis.com/compute/v1/projects/${local.project.inputs.project_id}/regions/${local.region.inputs.region_name}/routers/${local.site.router_name}"
-    } }
-  }
+  config_path = "../../../router"
 }
 
 dependency "tunnel" {
-  config_path                             = "../tunnels"
-  skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
-  mock_outputs_allowed_terraform_commands = ["validate", "render"]
-  mock_outputs = {
-    tunnels = { for key, tunnel in local.endpoint.tunnels : key => {
-      name      = tunnel.name
-      self_link = "https://www.googleapis.com/compute/v1/projects/${local.project.inputs.project_id}/regions/${local.region.inputs.region_name}/vpnTunnels/${tunnel.name}"
-    } }
-  }
+  config_path = "../tunnels"
 }
 
 inputs = {

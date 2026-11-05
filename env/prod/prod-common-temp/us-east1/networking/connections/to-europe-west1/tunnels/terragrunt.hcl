@@ -29,41 +29,15 @@ terraform {
 }
 
 dependency "router" {
-  config_path                             = "../../../router"
-  skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
-  mock_outputs_allowed_terraform_commands = ["validate", "render"]
-  mock_outputs = {
-    routers = { main = {
-      name      = local.site.router_name
-      project   = local.project.inputs.project_id
-      region    = local.region.inputs.region_name
-      self_link = "https://www.googleapis.com/compute/v1/projects/${local.project.inputs.project_id}/regions/${local.region.inputs.region_name}/routers/${local.site.router_name}"
-    } }
-  }
+  config_path = "../../../router"
 }
 
 dependency "gateway" {
-  config_path                             = "../../../vpn-gateway"
-  skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
-  mock_outputs_allowed_terraform_commands = ["validate", "render"]
-  mock_outputs = {
-    gateways = { main = {
-      name      = local.site.gateway_name
-      self_link = "https://www.googleapis.com/compute/v1/projects/${local.project.inputs.project_id}/regions/${local.region.inputs.region_name}/vpnGateways/${local.site.gateway_name}"
-    } }
-  }
+  config_path = "../../../vpn-gateway"
 }
 
 dependency "peer_gateway" {
-  config_path                             = "${dirname(find_in_parent_folders("project.hcl"))}/${local.peer_region}/networking/vpn-gateway"
-  skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
-  mock_outputs_allowed_terraform_commands = ["validate", "render"]
-  mock_outputs = {
-    gateways = { main = {
-      name      = local.peer.gateway_name
-      self_link = "https://www.googleapis.com/compute/v1/projects/${local.project.inputs.project_id}/regions/${local.peer_region}/vpnGateways/${local.peer.gateway_name}"
-    } }
-  }
+  config_path = "${dirname(find_in_parent_folders("project.hcl"))}/${local.peer_region}/networking/vpn-gateway"
 }
 
 inputs = {

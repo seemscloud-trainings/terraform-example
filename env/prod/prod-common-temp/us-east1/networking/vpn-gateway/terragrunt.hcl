@@ -20,15 +20,7 @@ terraform {
 }
 
 dependency "network" {
-  config_path                             = "../network"
-  skip_outputs                            = get_env("TG_VALIDATE_ONLY", "false") == "true"
-  mock_outputs_allowed_terraform_commands = ["validate", "render"]
-  mock_outputs = {
-    network = {
-      name      = local.site.network_name
-      self_link = "https://www.googleapis.com/compute/v1/projects/${local.project.inputs.project_id}/global/networks/${local.site.network_name}"
-    }
-  }
+  config_path = "../network"
 }
 
 inputs = {

@@ -83,19 +83,17 @@ that globally when running several connections that use different PSK files.
 ## Validation
 
 ```sh
-TF_STATE_BUCKET=validation-only-not-used TG_VALIDATE_ONLY=true terragrunt hcl validate
-TF_STATE_BUCKET=validation-only-not-used TG_VALIDATE_ONLY=true \
-  terragrunt --working-dir env/prod/prod-common-temp/europe-west1/networking/connections/to-us-east1/tunnels render --format hcl
+terragrunt hcl fmt --check
 ```
 
-Mocks are allowed for validate/render only, not plan/apply/destroy. Unset
-`TG_VALIDATE_ONLY` before infrastructure operations. Initial real planning needs
-outputs from the prerequisite units.
+All environment references use real dependency outputs. No mock outputs,
+output-skipping switches, or constructed Google API resource links exist in
+these units. Full rendering/planning requires the prerequisite units to have
+real state outputs; do not substitute example values for those outputs.
 
-Verified: existing EU-US inputs, state prefixes and secret-file paths are
-unchanged; all ten dependencies resolve without cycles. An isolated three-site,
-two-connection scenario has seventeen units with distinct state prefixes and
-shared regional infrastructure. That extra site was not added to this environment.
+Static checks cover HCL formatting and dependency paths. The dependency graph
+and state mapping are unchanged by removing the validation mocks. Existing
+EU-US resource inputs still reference the same dependencies and output fields.
 
 Workload firewall rules and test VMs are not defined here. IPsec/BGP establishment
 does not itself permit workload traffic through VPC firewalls. Existing training

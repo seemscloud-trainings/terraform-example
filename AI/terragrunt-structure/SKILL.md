@@ -102,11 +102,16 @@ Do przekazania danych z innej jednostki używaj `dependency` i rzeczywistych
 acykliczny. Zweryfikuj obie strony połączenia: regiony, adresy, ASN i kierunki
 odwołań, jeśli mają znaczenie dla zadania.
 
-Mocki służą wyłącznie do walidacji bez wdrożenia. Jeśli są potrzebne, odwzoruj
-rzeczywisty kształt outputów i ogranicz je przez
-`mock_outputs_allowed_terraform_commands` do `validate`/`render`. Nie dopuszczaj
-mocków dla plan/apply/destroy. `skip_outputs` nie może stale omijać prawdziwego
-stanu w normalnym uruchomieniu.
+W konfiguracji `env/` nie dodawaj `mock_outputs`, `skip_outputs` ani zastępczych
+linków/ID. Każde odwołanie do zasobu innej jednostki pobieraj z jej rzeczywistych
+outputów przez `dependency`. Używaj `.self_link` tam, gdzie wymagany jest link;
+gdy argument providera wymaga nazwy, używaj `.name` z outputu zależności.
+Nie składaj adresów `googleapis.com` z nazw projektu, regionu i zasobu.
+
+Jeśli poprzednia jednostka nie została wdrożona i nie ma outputów, nie maskuj
+tego fikcyjnymi danymi. Sprawdź statycznie składnię i ścieżki zależności oraz
+wyjaśnij, że pełny render/plan wymaga rzeczywistych outputów. Izolowane testy
+modułów nie są konfiguracją środowiska i pozostają poza `env/`.
 
 Utrzymuj unikalny prefix stanu dla każdej jednostki. Przeniesienie istniejącego
 katalogu może zmienić `path_relative_to_include()` i adres stanu; uwzględnij to
