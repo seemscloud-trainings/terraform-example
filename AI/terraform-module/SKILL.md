@@ -124,3 +124,7 @@ W testach złożenia nie zakładaj, że mock providera w root zastępuje konfigu
 providerów wewnątrz modułów potomnych. Stosuj izolowane kopie bez tych konfiguracji,
 przekaż mock jawnie przez providers i zablokuj użycie prawdziwych poświadczeń/API.
 Nie używaj bezpośredniego apply przykładu jako testu integracyjnego modułów.
+
+Moduły przyjmują kontekst środowiska jako osobną zmienną `environment`.
+Nie wykorzystuj go automatycznie do zmiany jawnych nazw zasobów; reguły
+nazewnictwa wymagają osobnego ustalenia z użytkownikiem.

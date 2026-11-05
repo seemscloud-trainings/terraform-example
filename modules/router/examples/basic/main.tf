@@ -1,4 +1,5 @@
 module "router" {
+  environment                           = var.environment
   source                                = "../.."
   project                               = var.project
   region                                = var.region

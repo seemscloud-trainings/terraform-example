@@ -1,3 +1,5 @@
+environment = "prod"
+
 project = "prod-common-temp"
 region  = "europe-west1"
 

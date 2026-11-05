@@ -1,4 +1,5 @@
 module "routers" {
+  environment                           = var.environment
   source                                = "../../../router"
   project                               = var.project
   region                                = var.region
@@ -15,6 +16,7 @@ module "routers" {
 }
 
 module "vpn" {
+  environment                           = var.environment
   source                                = "../.."
   project                               = var.project
   region                                = var.region
@@ -40,6 +42,7 @@ module "vpn" {
 # Reuse the same router module to configure the routers created above.
 # It creates no router of its own: ownership remains with module.routers.
 module "routing" {
+  environment                           = var.environment
   source                                = "../../../router"
   project                               = var.project
   region                                = var.region

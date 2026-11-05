@@ -58,6 +58,7 @@ include "root" {
 terraform_binary = "terraform"
 
 locals {
+  environment = read_terragrunt_config(find_in_parent_folders("environment.hcl"))
   project = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   region  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
 }
@@ -67,6 +68,7 @@ terraform {
 }
 
 inputs = {
+  environment = local.environment.inputs.environment
   project = local.project.inputs.project
   region  = local.region.inputs.region
 
@@ -141,3 +143,8 @@ Przygotowanie konfiguracji nie oznacza wdrożenia. Nie uruchamiaj rzeczywistego
 plan/apply/destroy ani nie twórz zasobów bez odpowiedniego polecenia użytkownika.
 W podsumowaniu podaj przygotowane ścieżki, wykonane kontrole i dane nadal
 wymagane do późniejszego wdrożenia.
+
+Środowisko nazywaj `environment`. Każda jednostka odczytuje `environment.hcl`
+w locals i przekazuje `environment = local.environment.inputs.environment`.
+Tak samo projekt i region przechodzą przez locals; nie wpisuj tych wartości
+na sztywno w inputs. `environment.hcl` udostępnia `inputs.environment`.

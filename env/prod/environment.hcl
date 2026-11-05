@@ -1,7 +1,7 @@
 locals {
-  environment_name = "prod"
+  environment = "prod"
 }
 
 inputs = {
-  environment_name = local.environment_name
+  environment = local.environment
 }

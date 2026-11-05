@@ -1,3 +1,5 @@
+environment = "prod"
+
 project = "project-a"
 region  = "europe-west1"
 routers = {
