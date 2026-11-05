@@ -10,4 +10,3 @@ output "network" {
     mtu          = google_compute_network.this.mtu
   }
 }
-
