@@ -14,7 +14,8 @@ opisuje [terraform-module](../terraform-module/SKILL.md). Nie modyfikuj cudzych 
 
 W environment.hcl, project.hcl i region.hcl definiuj kontekst, labels oraz tags
 w locals, a w inputs przekazuj wyłącznie local.environment/project/region,
-local.labels i local.tags. Nie powtarzaj wartości kontekstu w mapach.
+local.labels i local.tags. W mapach odwołuj się do tych locals, np. environment = local.environment.
+Nie powtarzaj wartości kontekstu jako literałów.
 Jednostki scalają mapy w kolejności environment → project → region.
 Tags w tych plikach są logicznymi nazwami i wartościami, nie identyfikatorami GCP.
 Mapy tags odczytuj z tych samych plików kontekstowych przez locals i przekazuj
@@ -25,6 +26,11 @@ kluczy/wartości tagów automatycznie. Referencje wskazują istniejące tagi GCP
 przekazanie mapy nie tworzy TagKey/TagValue. Nie deklaruj gotowości wdrożenia,
 jeśli istnienie tych tagów nie zostało sprawdzone. params.resource_manager_tags
 służy do przypięcia przy tworzeniu zasobu, nie do aktualizacji istniejących tagów.
+Nie myl namespace klucza tagu z nazwą zasobu: prefiks projektu w kluczu tagu
+jest formatem API, a nie zakazanym prefiksem nazwy. Dla tagów organizacyjnych
+lub z innego projektu nie zakładaj lokalnego namespace; ustal go jawnie.
+Nie traktuj ustawienia params jako bezpiecznej aktualizacji istniejącego zasobu;
+sprawdź zachowanie przypiętej wersji providera przed operacją na stanie.
 Labels przekazuj przez default_labels do zasobów, które je obsługują.
 VPC jest globalna: otrzymuje tylko tagi environment i project. Subnety, routery,
 bramy i tunele otrzymują także region. Interfejsy i peery BGP nie obsługują tych
@@ -72,7 +78,7 @@ env/<środowisko>/
     └── <region>/
         ├── region.hcl
         └── networking/
-            ├── network/<nazwa-vpc>/terragrunt.hcl
+            ├── network/<nazwa-jednostki>/terragrunt.hcl
             ├── router/terragrunt.hcl
             ├── vpn-gateway/terragrunt.hcl
             └── connections/to-<peer-region>/
@@ -83,7 +89,9 @@ env/<środowisko>/
 
 Nie przywracaj pojedynczego regionalnego `tunnel` ani `router-config` zakładającego
 jednego peera. Sieć, router i brama są współdzielone przez połączenia regionu.
-Każda VPC ma osobną atomową jednostkę network/<nazwa-vpc>/ i osobny stan.
+Każda VPC ma osobną atomową jednostkę network/<nazwa-jednostki>/ i osobny stan.
+Nazwa katalogu jest stabilnym identyfikatorem jednostki, np. main; nie musi być
+nazwą zasobu GCP, np. atlas. Nie synchronizuj tych nazw automatycznie.
 Routery i bramy wskazują dependency do konkretnego katalogu VPC.
 Nowe połączenie nie duplikuje tych zasobów. Nie twórz automatycznie pełnej siatki
 połączeń; wykonuj tylko żądaną topologię.
@@ -104,6 +112,31 @@ Nowe jednostki mają odzwierciedlać rzeczywistą odpowiedzialność i własnoś
 `environment.hcl` udostępnia `inputs.environment`, `project.hcl` — `inputs.project`,
 a `region.hcl` — `inputs.region`. Używaj dokładnie tych nazw. Każda jednostka
 odczytuje te pliki w locals i przekazuje wartości bezpośrednio do inputs:
+
+Plik kontekstowy definiuje również mapy w locals, a inputs je tylko udostępnia:
+
+```hcl
+locals {
+  environment = "prod"
+
+  labels = {
+    environment = local.environment
+  }
+
+  tags = {
+    environment = local.environment
+  }
+}
+
+inputs = {
+  environment = local.environment
+  labels      = local.labels
+  tags        = local.tags
+}
+```
+
+Analogicznie project.hcl używa local.project, a region.hcl local.region.
+Przykład jednostki tworzącej globalną VPC:
 
 ```hcl
 include "root" {
@@ -129,6 +162,12 @@ inputs = {
 
   network = {
     name = "atlas"
+
+    params = {
+      resource_manager_tags = {
+        for key, value in merge(local.environment.inputs.tags, local.project.inputs.tags) : "${local.project.inputs.project}/${key}" => value
+      }
+    }
   }
 }
 ```
@@ -181,6 +220,18 @@ Obie strony tunelu potrzebują swoich bram, zgodnych par interfejsów, pasujący
 PSK i wzajemnej adresacji BGP. Sprawdzaj ASN, CIDR i nazwy także między wieloma
 połączeniami na tym samym routerze. Graf dependency musi pozostać acykliczny.
 
+## Ograniczenia obecnego env
+
+Moduły router i vpn-ha obsługują mapy, lecz obecne wywołania env wybierają
+router i bramę przez klucz main. Nie przedstawiaj tego jako gotowej obsługi
+wielu niezależnych bram/routerów na połączenie. Rozszerzenie wymaga jawnego
+wyboru jednostki i klucza w konfiguracji połączenia, nie kopiowania main wszędzie.
+Adresy peer_ip_address są obecnie jawne w connection.hcl. Sprawdzaj je względem
+ip_range po drugiej stronie i unikaj kolizji. Nie twierdź, że pochodzą z outputs.
+Nie dodawaj wzajemnych dependency pomiędzy jednostkami bgp: tworzą cykl.
+Zmiana właściciela interfejsów lub peerów wymaga uwzględnienia migracji stanu.
+Nie zmieniaj tej topologii przy samym poprawianiu skillów lub formatowania.
+
 ## Formatowanie obowiązkowe
 
 Natywny HCL: przypisania przez `=`, dwie spacje wcięcia, bez JSON-owych obiektów.
@@ -212,6 +263,9 @@ Oba endpointy muszą otrzymać pasujące klucze. Prawdziwe `*.secrets.tfvars` s�
 ignorowane; śledzone przykłady zawierają wyłącznie placeholdery. Globalne ustawienie
 VPN_SECRETS_FILE nadpisze ścieżkę również innym połączeniom w tym uruchomieniu —
 nie używaj go przypadkiem przy wielu różnych plikach. Nie loguj sekretów.
+
+Nie twórz README.md; opis konwencji utrzymuj w lokalnych skillach AI/.
+Nie instaluj tych skillów globalnie.
 
 ## Weryfikacja i zakres pracy
 

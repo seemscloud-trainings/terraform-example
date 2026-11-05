@@ -13,24 +13,17 @@ Dla konfiguracji środowiska używaj [terragrunt-structure](../terragrunt-struct
 
 ## Labels i Resource Manager Tags
 
-W environment.hcl, project.hcl i region.hcl definiuj kontekst, labels oraz tags
-w locals, a w inputs przekazuj wyłącznie local.environment/project/region,
-local.labels i local.tags. Nie powtarzaj wartości kontekstu w mapach.
-Jednostki scalają mapy w kolejności environment → project → region.
-Tags w tych plikach są logicznymi nazwami i wartościami, nie identyfikatorami GCP.
-Mapy tags odczytuj z tych samych plików kontekstowych przez locals i przekazuj
-bezpośrednio do resource_manager_tags danego zasobu. Używaj namespaced keys:
-"${local.project.inputs.project}/${key}" => value dla tagów tego projektu.
-Nie twórz jednostki ani modułu tags, nie dodawaj dependency.tags i nie twórz
-kluczy/wartości tagów automatycznie. Referencje wskazują istniejące tagi GCP;
-przekazanie mapy nie tworzy TagKey/TagValue. Nie deklaruj gotowości wdrożenia,
-jeśli istnienie tych tagów nie zostało sprawdzone. params.resource_manager_tags
-służy do przypięcia przy tworzeniu zasobu, nie do aktualizacji istniejących tagów.
-Labels przekazuj przez default_labels do zasobów, które je obsługują.
-VPC jest globalna: otrzymuje tylko tagi environment i project. Subnety, routery,
-bramy i tunele otrzymują także region. Interfejsy i peery BGP nie obsługują tych
-pól. Nie dodawaj fikcyjnych argumentów ani network tags jako zamiennika labels.
-Dla zasobów nadpisujących region używaj faktycznego regionu zasobu.
+Kontrakt plików kontekstowych, namespace tagów i ich przekazywanie opisuje
+[terragrunt-structure](../terragrunt-structure/SKILL.md#labels-i-resource-manager-tags).
+Nie twórz pomocniczego modułu tags ani jednostki zarządzającej katalogiem tagów.
+Moduły przyjmują params.resource_manager_tags jawnie na danym zasobie; nie
+zamieniają automatycznie environment ani default_labels w tagi GCP.
+Provider otrzymuje default_labels. Bezpośrednie labels zasobu mogą je nadpisać;
+przy regionalnym override trzeba przekazać właściwe oznaczenie regionu.
+Sprawdzaj wsparcie w schemacie konkretnego zasobu. Obecnie network, subnetwork
+oraz router mają resource_manager_tags, ale nie labels. HA VPN gateway i tunnel
+mają oba mechanizmy; interfejsy routera i peery BGP nie mają żadnego z nich.
+Nie dodawaj nieobsługiwanych pól. Zwykłe network tags VM nie są zamiennikiem.
 
 ## Nazwy zasobów w chmurze
 
@@ -68,7 +61,7 @@ każdego pojedynczego resource. Nie dodawaj backendu ani konfiguracji env do mod
 
 Moduł network pozostaje atomowy: jedna VPC, wejście network jako obiekt i mapa
 subnetworks. Wiele VPC realizuj przez osobne jednostki Terragrunt
-network/<nazwa-vpc>/, nie przez zmianę tego modułu na mapę sieci.
+network/<nazwa-jednostki>/, nie przez zmianę tego modułu na mapę sieci.
 
 ## Argumenty i typowanie
 
@@ -173,6 +166,7 @@ sekretów w repozytorium.
 Zachowaj istniejące przykłady. Potrzebny nowy przykład rozdziela wywołanie przez
 var.* w main.tf, typy w variables.tf i wartości w terraform.tfvars.example.
 Nie dodawaj demonstracyjnych środowisk ani podłączenia do env poza zakresem zadania.
+Nie twórz README.md; dokumentację konwencji utrzymuj w lokalnych skillach AI/.
 
 Uruchom fmt, init z wyłączonym backendem, validate i testy zachowania na mockach:
 minimum/pusta mapa, powiązania i nadpisania, opcjonalne bloki, błędne wejścia,
@@ -191,6 +185,8 @@ przejść mimo pominięcia opcjonalnej funkcji.
 
 Provider jest konfigurowany wewnątrz modułu; module call nie może więc używać
 count/for_each/depends_on. Root mock nie musi zastąpić providera zagnieżdżonego.
+W kopiach testowych pomiń provider.tf, ale zachowaj versions.tf. Wykrywaj
+pozostawione bloki provider również na początku pliku.
 Przy testach złożenia użyj izolowanych kopii bez konfiguracji providerów, przekaż
 mock jawnie i zablokuj prawdziwe API/poświadczenia. Wzorem jest
 `modules/vpn-ha/tests/verify_composition.py`.
