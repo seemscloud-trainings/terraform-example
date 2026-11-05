@@ -22,10 +22,12 @@ dependency "network" {
 inputs = {
   project = local.project.inputs.project
   region  = local.region.inputs.region
-  gateways = { main = {
-    name               = local.site.gateway_name
-    network            = dependency.network.outputs.network.self_link
-    gateway_ip_version = "IPV4"
-    stack_type         = "IPV4_ONLY"
-  } }
+  gateways = {
+    main = {
+      name               = local.site.gateway_name
+      network            = dependency.network.outputs.network.self_link
+      gateway_ip_version = "IPV4"
+      stack_type         = "IPV4_ONLY"
+    }
+  }
 }

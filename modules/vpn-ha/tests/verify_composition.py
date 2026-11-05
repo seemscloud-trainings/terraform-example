@@ -22,10 +22,15 @@ with tempfile.TemporaryDirectory(prefix='vpn-composition-') as directory:
  for src in EXAMPLE.glob('*.tf'):
   content=src.read_text().replace('"../../../router"','"../router"').replace('"../.."','"../vpn-ha"')
   if src.name=='main.tf':
-   content=content.replace('module "routers" {','module "routers" {\n providers = { google = google }').replace('module "vpn" {','module "vpn" {\n providers = { google = google }').replace('module "routing" {','module "routing" {\n providers = { google = google }')
+   content=content.replace('module "routers" {','module "routers" {\n providers = {\n google = google\n }').replace('module "vpn" {','module "vpn" {\n providers = {\n google = google\n }').replace('module "routing" {','module "routing" {\n providers = {\n google = google\n }')
   (work/src.name).write_text(content)
  (work/'test-provider.tf').write_text('''terraform {
- required_providers { google = { source = "hashicorp/google", version = "= 8.10.0" } }
+ required_providers {
+  google = {
+   source = "hashicorp/google"
+   version = "= 8.10.0"
+  }
+ }
 }
 provider "google" {
  project = "mock-only"
@@ -34,7 +39,7 @@ provider "google" {
 }
 ''')
  tests=work/'tests';tests.mkdir()
- test=(MODULES/'vpn-ha/tests/fixtures/composition.tftest.hcl.template').read_text().replace('mock_provider "google" {}','mock_provider "google" { alias = "mocked" }').replace('command = apply','command = apply\n providers = { google = google.mocked }')
+ test=(MODULES/'vpn-ha/tests/fixtures/composition.tftest.hcl.template').read_text().replace('mock_provider "google" {}','mock_provider "google" {\n alias = "mocked"\n }').replace('command = apply','command = apply\n providers = {\n google = google.mocked\n }')
  (tests/'composition.tftest.hcl').write_text(test)
  env={k:v for k,v in os.environ.items() if not k.startswith(('GOOGLE_','GCLOUD_','CLOUDSDK_','TF_VAR_'))}
  # Even an accidental real provider cannot use ambient ADC/metadata credentials.

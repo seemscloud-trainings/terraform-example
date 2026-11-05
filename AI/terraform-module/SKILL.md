@@ -65,6 +65,13 @@ Provider wewnątrz modułu jest obecną konwencją repozytorium. Wyjaśnij ogran
 Terraform: taki moduł nie może mieć `count`, `for_each` ani `depends_on` na
 wywołaniu module. Wielokrotność obsługuj przez mapy wejściowe wewnątrz modułu.
 
+
+Niepuste obiekty i mapy zapisuj zawsze wieloliniowo. Po otwierającej klamrze
+zaczynaj zawartość w nowej linii; każda para klamer ma własny poziom wcięcia.
+Nie używaj formy `gateways = { main = { ... } }` ani dwóch klamer zamykających
+w jednej linii. Tak samo formatuj obiekty w wyrażeniach for, testach i przykładach.
+Puste `{}` mogą pozostać w jednej linii. Zwykły fmt nie zastępuje tej reguły.
+
 ## Wejścia i tożsamość zasobów
 
 Pojedynczy zasób otrzymuje `object({...})`; kolekcja zasobów otrzymuje

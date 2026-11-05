@@ -32,18 +32,22 @@ inputs = {
   project = local.project.inputs.project
   region  = local.region.inputs.region
   # No routers map: this unit owns only interfaces and peers on the existing router.
-  interfaces = { for key, tunnel in local.endpoint.tunnels : key => {
-    name       = tunnel.interface_name
-    router     = dependency.router.outputs.routers.main.name
-    vpn_tunnel = dependency.tunnel.outputs.tunnels[key].self_link
-    ip_range   = tunnel.ip_range
-  } }
-  peers = { for key, tunnel in local.endpoint.tunnels : key => {
-    name            = tunnel.peer_name
-    router          = dependency.router.outputs.routers.main.name
-    interface_key   = key
-    peer_asn        = local.peer.asn
-    peer_ip_address = tunnel.peer_ip_address
-    advertise_mode  = "DEFAULT"
-  } }
+  interfaces = {
+    for key, tunnel in local.endpoint.tunnels : key => {
+      name       = tunnel.interface_name
+      router     = dependency.router.outputs.routers.main.name
+      vpn_tunnel = dependency.tunnel.outputs.tunnels[key].self_link
+      ip_range   = tunnel.ip_range
+    }
+  }
+  peers = {
+    for key, tunnel in local.endpoint.tunnels : key => {
+      name            = tunnel.peer_name
+      router          = dependency.router.outputs.routers.main.name
+      interface_key   = key
+      peer_asn        = local.peer.asn
+      peer_ip_address = tunnel.peer_ip_address
+      advertise_mode  = "DEFAULT"
+    }
+  }
 }

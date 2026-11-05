@@ -76,6 +76,13 @@ inputs = {
 }
 ```
 
+
+Niepuste obiekty i mapy zapisuj zawsze wieloliniowo. Po otwierającej klamrze
+zaczynaj zawartość w nowej linii; każda para klamer ma własny poziom wcięcia.
+Nie używaj formy `gateways = { main = { ... } }` ani dwóch klamer zamykających
+w jednej linii. Tak samo formatuj obiekty w wyrażeniach for, testach i przykładach.
+Puste `{}` mogą pozostać w jednej linii. Zwykły fmt nie zastępuje tej reguły.
+
 ## Dane i kontrakty modułów
 
 Odczytuj projekt i region z najbliższych plików kontekstowych. Wspólne dane jednej

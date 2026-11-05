@@ -39,13 +39,15 @@ dependency "peer_gateway" {
 inputs = {
   project = local.project.inputs.project
   region  = local.region.inputs.region
-  tunnels = { for key, tunnel in local.endpoint.tunnels : key => {
-    name                  = tunnel.name
-    vpn_gateway           = dependency.gateway.outputs.gateways.main.self_link
-    peer_gcp_gateway      = dependency.peer_gateway.outputs.gateways.main.self_link
-    vpn_gateway_interface = tunnel.interface
-    router                = dependency.router.outputs.routers.main.self_link
-    ike_version           = 2
-    secret_key            = key
-  } }
+  tunnels = {
+    for key, tunnel in local.endpoint.tunnels : key => {
+      name                  = tunnel.name
+      vpn_gateway           = dependency.gateway.outputs.gateways.main.self_link
+      peer_gcp_gateway      = dependency.peer_gateway.outputs.gateways.main.self_link
+      vpn_gateway_interface = tunnel.interface
+      router                = dependency.router.outputs.routers.main.self_link
+      ike_version           = 2
+      secret_key            = key
+    }
+  }
 }

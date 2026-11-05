@@ -13,7 +13,12 @@ run "empty" {
 run "standalone_router" {
   command = apply
   variables {
-    routers = { nat = { name = "nat-router", network = "projects/test-project/global/networks/app" } }
+    routers = {
+      nat = {
+        name    = "nat-router"
+        network = "projects/test-project/global/networks/app"
+      }
+    }
   }
   assert {
     condition     = google_compute_router.this["nat"].name == "nat-router" && length(output.interfaces) == 0 && length(output.peers) == 0
@@ -24,8 +29,17 @@ run "insert_router" {
   command = apply
   variables {
     routers = {
-      core = { name = "core-router", network = "projects/test-project/global/networks/app", bgp = { asn = 65001 } }
-      nat  = { name = "nat-router", network = "projects/test-project/global/networks/app" }
+      core = {
+        name    = "core-router"
+        network = "projects/test-project/global/networks/app"
+        bgp = {
+          asn = 65001
+        }
+      }
+      nat = {
+        name    = "nat-router"
+        network = "projects/test-project/global/networks/app"
+      }
     }
   }
   assert {
@@ -36,7 +50,12 @@ run "insert_router" {
 run "remove_other_router" {
   command = apply
   variables {
-    routers = { nat = { name = "nat-router", network = "projects/test-project/global/networks/app" } }
+    routers = {
+      nat = {
+        name    = "nat-router"
+        network = "projects/test-project/global/networks/app"
+      }
+    }
   }
   assert {
     condition     = length(output.routers) == 1 && output.routers["nat"].id == run.standalone_router.routers["nat"].id
@@ -46,9 +65,43 @@ run "remove_other_router" {
 run "managed_interfaces_and_peers" {
   command = apply
   variables {
-    routers    = { core = { name = "core-router", project = "host-project", region = "europe-west4", network = "projects/host-project/global/networks/app", bgp = { asn = 65001, advertise_mode = "CUSTOM", advertised_ip_ranges = { app = { range = "10.10.0.0/16" } } } } }
-    interfaces = { primary = { name = "vpn-interface", router_key = "core", vpn_tunnel = "projects/host-project/regions/europe-west4/vpnTunnels/primary", ip_range = "169.254.10.1/30" } }
-    peers      = { primary = { name = "vpn-peer", router_key = "core", interface_key = "primary", peer_asn = 65002, peer_ip_address = "169.254.10.2", enable = false, advertised_route_priority = 0, zero_advertised_route_priority = true } }
+    routers = {
+      core = {
+        name    = "core-router"
+        project = "host-project"
+        region  = "europe-west4"
+        network = "projects/host-project/global/networks/app"
+        bgp = {
+          asn            = 65001
+          advertise_mode = "CUSTOM"
+          advertised_ip_ranges = {
+            app = {
+              range = "10.10.0.0/16"
+            }
+          }
+        }
+      }
+    }
+    interfaces = {
+      primary = {
+        name       = "vpn-interface"
+        router_key = "core"
+        vpn_tunnel = "projects/host-project/regions/europe-west4/vpnTunnels/primary"
+        ip_range   = "169.254.10.1/30"
+      }
+    }
+    peers = {
+      primary = {
+        name                           = "vpn-peer"
+        router_key                     = "core"
+        interface_key                  = "primary"
+        peer_asn                       = 65002
+        peer_ip_address                = "169.254.10.2"
+        enable                         = false
+        advertised_route_priority      = 0
+        zero_advertised_route_priority = true
+      }
+    }
   }
   assert {
     condition     = google_compute_router_interface.this["primary"].router == google_compute_router.this["core"].name && google_compute_router_peer.this["primary"].interface == google_compute_router_interface.this["primary"].name && output.peers["primary"].project == "host-project" && output.peers["primary"].region == "europe-west4"
@@ -62,8 +115,29 @@ run "managed_interfaces_and_peers" {
 run "existing_router_interconnect" {
   command = apply
   variables {
-    interfaces = { vlan = { name = "vlan-interface", router = "existing-router", interconnect_attachment = "projects/test-project/regions/europe-west1/interconnectAttachments/vlan", ip_range = "169.254.20.1/30" } }
-    peers      = { vlan = { name = "vlan-peer", router = "existing-router", interface_key = "vlan", peer_asn = 65003, peer_ip_address = "169.254.20.2", bfd = { session_initialization_mode = "ACTIVE", min_receive_interval = 1000, min_transmit_interval = 1000, multiplier = 5 } } }
+    interfaces = {
+      vlan = {
+        name                    = "vlan-interface"
+        router                  = "existing-router"
+        interconnect_attachment = "projects/test-project/regions/europe-west1/interconnectAttachments/vlan"
+        ip_range                = "169.254.20.1/30"
+      }
+    }
+    peers = {
+      vlan = {
+        name            = "vlan-peer"
+        router          = "existing-router"
+        interface_key   = "vlan"
+        peer_asn        = 65003
+        peer_ip_address = "169.254.20.2"
+        bfd = {
+          session_initialization_mode = "ACTIVE"
+          min_receive_interval        = 1000
+          min_transmit_interval       = 1000
+          multiplier                  = 5
+        }
+      }
+    }
   }
   assert {
     condition     = length(output.routers) == 0 && output.interfaces["vlan"].router == "existing-router" && length(google_compute_router_peer.this["vlan"].bfd) == 1
@@ -72,20 +146,46 @@ run "existing_router_interconnect" {
 }
 run "bad_router_key" {
   command = plan
-  variables { interfaces = { bad = { name = "bad-interface", router_key = "missing" } } }
+  variables {
+    interfaces = {
+      bad = {
+        name       = "bad-interface"
+        router_key = "missing"
+      }
+    }
+  }
   expect_failures = [var.interfaces]
 }
 run "missing_router_choice" {
   command = plan
-  variables { interfaces = { bad = { name = "bad-interface" } } }
+  variables {
+    interfaces = {
+      bad = {
+        name = "bad-interface"
+      }
+    }
+  }
   expect_failures = [var.interfaces]
 }
 
 run "peer_interface_router_mismatch" {
   command = plan
   variables {
-    interfaces = { primary = { name = "existing-interface", router = "router-one", vpn_tunnel = "existing-tunnel" } }
-    peers      = { primary = { name = "wrong-peer", router = "router-two", interface_key = "primary", peer_asn = 65002 } }
+    interfaces = {
+      primary = {
+        name       = "existing-interface"
+        router     = "router-one"
+        vpn_tunnel = "existing-tunnel"
+      }
+    }
+    peers = {
+      primary = {
+        name          = "wrong-peer"
+        router        = "router-two"
+        interface_key = "primary"
+        peer_asn      = 65002
+      }
+    }
   }
   expect_failures = [google_compute_router_peer.this]
 }

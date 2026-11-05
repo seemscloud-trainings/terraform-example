@@ -3,7 +3,7 @@ run "complete_pair_without_cycles" {
   command = apply
   variables {
     project = "project-a"
-    region = "europe-west1"
+    region  = "europe-west1"
 
     routers = {
       a = {
@@ -136,7 +136,10 @@ run "complete_pair_without_cycles" {
       }
     }
 
-    shared_secrets            = { primary = "mock-primary-only", secondary = "mock-secondary-only" }
+    shared_secrets = {
+      primary   = "mock-primary-only"
+      secondary = "mock-secondary-only"
+    }
     write_only_shared_secrets = {}
   }
   assert {

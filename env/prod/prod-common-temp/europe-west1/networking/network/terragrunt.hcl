@@ -16,8 +16,16 @@ terraform {
 }
 
 inputs = {
-  project     = local.project.inputs.project
-  region      = local.region.inputs.region
-  network     = { name = local.site.network_name, routing_mode = "GLOBAL" }
-  subnetworks = { main = { name = local.site.subnet_name, ip_cidr_range = local.site.cidr } }
+  project = local.project.inputs.project
+  region  = local.region.inputs.region
+  network = {
+    name         = local.site.network_name
+    routing_mode = "GLOBAL"
+  }
+  subnetworks = {
+    main = {
+      name          = local.site.subnet_name
+      ip_cidr_range = local.site.cidr
+    }
+  }
 }

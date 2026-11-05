@@ -9,7 +9,9 @@ mock_provider "google" {
 variables {
   project = "unit-project"
   region  = "europe-west1"
-  network = { name = "unit-vpc" }
+  network = {
+    name = "unit-vpc"
+  }
 }
 
 run "network_without_subnets" {
@@ -24,8 +26,15 @@ run "named_subnets" {
   command = apply
   variables {
     subnetworks = {
-      application = { name = "application-subnet", ip_cidr_range = "10.10.1.0/24" }
-      database    = { name = "database-subnet", ip_cidr_range = "10.10.2.0/24", region = "europe-west4" }
+      application = {
+        name          = "application-subnet"
+        ip_cidr_range = "10.10.1.0/24"
+      }
+      database = {
+        name          = "database-subnet"
+        ip_cidr_range = "10.10.2.0/24"
+        region        = "europe-west4"
+      }
     }
   }
   assert {
@@ -42,9 +51,19 @@ run "insert_between_existing_keys" {
   command = apply
   variables {
     subnetworks = {
-      database    = { name = "database-subnet", ip_cidr_range = "10.10.2.0/24", region = "europe-west4" }
-      batch       = { name = "batch-subnet", ip_cidr_range = "10.10.3.0/24" }
-      application = { name = "application-subnet", ip_cidr_range = "10.10.1.0/24" }
+      database = {
+        name          = "database-subnet"
+        ip_cidr_range = "10.10.2.0/24"
+        region        = "europe-west4"
+      }
+      batch = {
+        name          = "batch-subnet"
+        ip_cidr_range = "10.10.3.0/24"
+      }
+      application = {
+        name          = "application-subnet"
+        ip_cidr_range = "10.10.1.0/24"
+      }
     }
   }
   assert {
@@ -57,8 +76,15 @@ run "remove_only_batch" {
   command = apply
   variables {
     subnetworks = {
-      application = { name = "application-subnet", ip_cidr_range = "10.10.1.0/24" }
-      database    = { name = "database-subnet", ip_cidr_range = "10.10.2.0/24", region = "europe-west4" }
+      application = {
+        name          = "application-subnet"
+        ip_cidr_range = "10.10.1.0/24"
+      }
+      database = {
+        name          = "database-subnet"
+        ip_cidr_range = "10.10.2.0/24"
+        region        = "europe-west4"
+      }
     }
   }
   assert {
@@ -84,10 +110,19 @@ run "advanced_fields_and_secondary_maps" {
         ip_cidr_range                    = "10.10.1.0/24"
         private_ip_google_access         = false
         send_secondary_ip_range_if_empty = true
-        log_config                       = { flow_sampling = 0, metadata = "EXCLUDE_ALL_METADATA" }
+        log_config = {
+          flow_sampling = 0
+          metadata      = "EXCLUDE_ALL_METADATA"
+        }
         secondary_ip_range = {
-          pods     = { range_name = "pods-range", ip_cidr_range = "10.20.0.0/20" }
-          services = { range_name = "services-range", ip_cidr_range = "10.21.0.0/24" }
+          pods = {
+            range_name    = "pods-range"
+            ip_cidr_range = "10.20.0.0/20"
+          }
+          services = {
+            range_name    = "services-range"
+            ip_cidr_range = "10.21.0.0/24"
+          }
         }
       }
     }
@@ -105,7 +140,10 @@ run "advanced_fields_and_secondary_maps" {
 run "explicit_project_region_and_network" {
   command = apply
   variables {
-    network = { name = "unit-vpc", project = "host-project" }
+    network = {
+      name    = "unit-vpc"
+      project = "host-project"
+    }
     subnetworks = {
       external = {
         name          = "external-subnet"
@@ -114,7 +152,10 @@ run "explicit_project_region_and_network" {
         network       = "projects/external-project/global/networks/existing-vpc"
         ip_cidr_range = "10.30.0.0/24"
       }
-      inherited = { name = "inherited-subnet", ip_cidr_range = "10.31.0.0/24" }
+      inherited = {
+        name          = "inherited-subnet"
+        ip_cidr_range = "10.31.0.0/24"
+      }
     }
   }
   assert {
@@ -125,18 +166,36 @@ run "explicit_project_region_and_network" {
 
 run "reject_bad_network_name" {
   command = plan
-  variables { network = { name = "INVALID_NAME" } }
+  variables {
+    network = {
+      name = "INVALID_NAME"
+    }
+  }
   expect_failures = [var.network]
 }
 
 run "reject_bad_subnet_name" {
   command = plan
-  variables { subnetworks = { application = { name = "INVALID_NAME", ip_cidr_range = "10.0.0.0/24" } } }
+  variables {
+    subnetworks = {
+      application = {
+        name          = "INVALID_NAME"
+        ip_cidr_range = "10.0.0.0/24"
+      }
+    }
+  }
   expect_failures = [var.subnetworks]
 }
 
 run "reject_bad_cidr" {
   command = plan
-  variables { subnetworks = { application = { name = "application", ip_cidr_range = "not-a-cidr" } } }
+  variables {
+    subnetworks = {
+      application = {
+        name          = "application"
+        ip_cidr_range = "not-a-cidr"
+      }
+    }
+  }
   expect_failures = [var.subnetworks]
 }

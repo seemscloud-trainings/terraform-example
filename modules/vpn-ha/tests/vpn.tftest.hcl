@@ -8,8 +8,15 @@ run "gateways_only" {
   command = apply
   variables {
     gateways = {
-      a = { name = "gateway-a", network = "projects/project-a/global/networks/a" }
-      b = { name = "gateway-b", project = "project-b", network = "projects/project-b/global/networks/b" }
+      a = {
+        name    = "gateway-a"
+        network = "projects/project-a/global/networks/a"
+      }
+      b = {
+        name    = "gateway-b"
+        project = "project-b"
+        network = "projects/project-b/global/networks/b"
+      }
     }
   }
   assert {
@@ -21,15 +28,53 @@ run "ha_pair" {
   command = apply
   variables {
     gateways = {
-      a = { name = "gateway-a", network = "projects/project-a/global/networks/a" }
-      b = { name = "gateway-b", project = "project-b", network = "projects/project-b/global/networks/b" }
+      a = {
+        name    = "gateway-a"
+        network = "projects/project-a/global/networks/a"
+      }
+      b = {
+        name    = "gateway-b"
+        project = "project-b"
+        network = "projects/project-b/global/networks/b"
+      }
     }
-    shared_secrets = { primary = "mock-primary-secret", secondary = "mock-secondary-secret" }
+    shared_secrets = {
+      primary   = "mock-primary-secret"
+      secondary = "mock-secondary-secret"
+    }
     tunnels = {
-      a_primary   = { name = "a-primary", gateway_key = "a", peer_gateway_key = "b", vpn_gateway_interface = 0, router = "projects/project-a/regions/europe-west1/routers/router-a", secret_key = "primary" }
-      a_secondary = { name = "a-secondary", gateway_key = "a", peer_gateway_key = "b", vpn_gateway_interface = 1, router = "projects/project-a/regions/europe-west1/routers/router-a", secret_key = "secondary" }
-      b_primary   = { name = "b-primary", gateway_key = "b", peer_gateway_key = "a", vpn_gateway_interface = 0, router = "projects/project-b/regions/europe-west1/routers/router-b", secret_key = "primary" }
-      b_secondary = { name = "b-secondary", gateway_key = "b", peer_gateway_key = "a", vpn_gateway_interface = 1, router = "projects/project-b/regions/europe-west1/routers/router-b", secret_key = "secondary" }
+      a_primary = {
+        name                  = "a-primary"
+        gateway_key           = "a"
+        peer_gateway_key      = "b"
+        vpn_gateway_interface = 0
+        router                = "projects/project-a/regions/europe-west1/routers/router-a"
+        secret_key            = "primary"
+      }
+      a_secondary = {
+        name                  = "a-secondary"
+        gateway_key           = "a"
+        peer_gateway_key      = "b"
+        vpn_gateway_interface = 1
+        router                = "projects/project-a/regions/europe-west1/routers/router-a"
+        secret_key            = "secondary"
+      }
+      b_primary = {
+        name                  = "b-primary"
+        gateway_key           = "b"
+        peer_gateway_key      = "a"
+        vpn_gateway_interface = 0
+        router                = "projects/project-b/regions/europe-west1/routers/router-b"
+        secret_key            = "primary"
+      }
+      b_secondary = {
+        name                  = "b-secondary"
+        gateway_key           = "b"
+        peer_gateway_key      = "a"
+        vpn_gateway_interface = 1
+        router                = "projects/project-b/regions/europe-west1/routers/router-b"
+        secret_key            = "secondary"
+      }
     }
   }
   assert {
@@ -48,8 +93,19 @@ run "ha_pair" {
 run "existing_gateway_external_peer" {
   command = apply
   variables {
-    shared_secrets = { external = "mock-external-secret" }
-    tunnels        = { external = { name = "external", vpn_gateway = "projects/project-a/regions/europe-west1/vpnGateways/existing", vpn_gateway_interface = 0, peer_external_gateway = "projects/project-a/global/externalVpnGateways/onprem", peer_external_gateway_interface = 0, router = "existing-router" } }
+    shared_secrets = {
+      external = "mock-external-secret"
+    }
+    tunnels = {
+      external = {
+        name                            = "external"
+        vpn_gateway                     = "projects/project-a/regions/europe-west1/vpnGateways/existing"
+        vpn_gateway_interface           = 0
+        peer_external_gateway           = "projects/project-a/global/externalVpnGateways/onprem"
+        peer_external_gateway_interface = 0
+        router                          = "existing-router"
+      }
+    }
   }
   assert {
     condition     = length(output.gateways) == 0 && google_compute_vpn_tunnel.this["external"].peer_external_gateway_interface == 0
@@ -59,8 +115,20 @@ run "existing_gateway_external_peer" {
 run "write_only_secret" {
   command = apply
   variables {
-    write_only_shared_secrets = { tunnel = "mock-ephemeral-secret" }
-    tunnels                   = { tunnel = { name = "write-only", vpn_gateway = "projects/project-a/regions/europe-west1/vpnGateways/existing", vpn_gateway_interface = 0, peer_gcp_gateway = "projects/project-b/regions/europe-west1/vpnGateways/existing", router = "existing-router", secret_mode = "write_only", shared_secret_wo_version = "1" } }
+    write_only_shared_secrets = {
+      tunnel = "mock-ephemeral-secret"
+    }
+    tunnels = {
+      tunnel = {
+        name                     = "write-only"
+        vpn_gateway              = "projects/project-a/regions/europe-west1/vpnGateways/existing"
+        vpn_gateway_interface    = 0
+        peer_gcp_gateway         = "projects/project-b/regions/europe-west1/vpnGateways/existing"
+        router                   = "existing-router"
+        secret_mode              = "write_only"
+        shared_secret_wo_version = "1"
+      }
+    }
   }
   assert {
     condition     = google_compute_vpn_tunnel.this["tunnel"].shared_secret_wo_version == "1"
@@ -69,14 +137,34 @@ run "write_only_secret" {
 }
 run "missing_psk" {
   command = plan
-  variables { tunnels = { missing = { name = "missing", vpn_gateway = "projects/project-a/regions/europe-west1/vpnGateways/existing", vpn_gateway_interface = 0, peer_gcp_gateway = "projects/project-b/regions/europe-west1/vpnGateways/existing", router = "existing-router" } } }
+  variables {
+    tunnels = {
+      missing = {
+        name                  = "missing"
+        vpn_gateway           = "projects/project-a/regions/europe-west1/vpnGateways/existing"
+        vpn_gateway_interface = 0
+        peer_gcp_gateway      = "projects/project-b/regions/europe-west1/vpnGateways/existing"
+        router                = "existing-router"
+      }
+    }
+  }
   expect_failures = [var.tunnels]
 }
 run "invalid_ha_interface" {
   command = plan
   variables {
-    shared_secrets = { invalid = "mock-secret" }
-    tunnels        = { invalid = { name = "invalid", vpn_gateway = "projects/project-a/regions/europe-west1/vpnGateways/existing", vpn_gateway_interface = 2, peer_gcp_gateway = "projects/project-b/regions/europe-west1/vpnGateways/existing", router = "existing-router" } }
+    shared_secrets = {
+      invalid = "mock-secret"
+    }
+    tunnels = {
+      invalid = {
+        name                  = "invalid"
+        vpn_gateway           = "projects/project-a/regions/europe-west1/vpnGateways/existing"
+        vpn_gateway_interface = 2
+        peer_gcp_gateway      = "projects/project-b/regions/europe-west1/vpnGateways/existing"
+        router                = "existing-router"
+      }
+    }
   }
   expect_failures = [var.tunnels]
 }
@@ -107,8 +195,14 @@ run "interconnect_gateway_interfaces" {
         name    = "interconnect-ha"
         network = "projects/project-a/global/networks/interconnect"
         vpn_interfaces = {
-          primary   = { id = 0, interconnect_attachment = "projects/project-a/regions/europe-west1/interconnectAttachments/primary" }
-          secondary = { id = 1, interconnect_attachment = "projects/project-a/regions/europe-west1/interconnectAttachments/secondary" }
+          primary = {
+            id                      = 0
+            interconnect_attachment = "projects/project-a/regions/europe-west1/interconnectAttachments/primary"
+          }
+          secondary = {
+            id                      = 1
+            interconnect_attachment = "projects/project-a/regions/europe-west1/interconnectAttachments/secondary"
+          }
         }
       }
     }

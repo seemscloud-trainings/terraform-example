@@ -22,9 +22,14 @@ dependency "network" {
 inputs = {
   project = local.project.inputs.project
   region  = local.region.inputs.region
-  routers = { main = {
-    name    = local.site.router_name
-    network = dependency.network.outputs.network.self_link
-    bgp     = { asn = local.site.asn, advertise_mode = "DEFAULT" }
-  } }
+  routers = {
+    main = {
+      name    = local.site.router_name
+      network = dependency.network.outputs.network.self_link
+      bgp = {
+        asn            = local.site.asn
+        advertise_mode = "DEFAULT"
+      }
+    }
+  }
 }
