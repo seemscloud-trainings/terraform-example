@@ -60,7 +60,16 @@ variable "spoke" {
   })
   nullable = false
   validation {
-    condition     = length([for link in [var.spoke.gateway, var.spoke.linked_interconnect_attachments, var.spoke.linked_producer_vpc_network, var.spoke.linked_router_appliance_instances, var.spoke.linked_vpc_network, var.spoke.linked_vpn_tunnels] : link if link != null]) == 1
+    condition = length([
+      for link in [
+        var.spoke.gateway,
+        var.spoke.linked_interconnect_attachments,
+        var.spoke.linked_producer_vpc_network,
+        var.spoke.linked_router_appliance_instances,
+        var.spoke.linked_vpc_network,
+        var.spoke.linked_vpn_tunnels,
+      ] : link if link != null
+    ]) == 1
     error_message = "A spoke must select exactly one linked resource type."
   }
   validation {

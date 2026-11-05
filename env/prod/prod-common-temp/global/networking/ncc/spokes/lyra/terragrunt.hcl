@@ -23,8 +23,10 @@ inputs = {
     location = "global"
     hub      = dependency.hub.outputs.hub.id
     linked_vpc_network = {
-      uri                   = dependency.network.outputs.network.self_link
-      include_export_ranges = [dependency.subnetwork.outputs.subnetworks.workload.ip_cidr_range]
+      uri = dependency.network.outputs.network.self_link
+      include_export_ranges = [
+        dependency.subnetwork.outputs.subnetworks.workload.ip_cidr_range,
+      ]
     }
   }
 }

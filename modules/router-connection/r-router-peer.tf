@@ -34,7 +34,9 @@ resource "google_compute_router_peer" "this" {
     }
   }
   dynamic "bfd" {
-    for_each = var.peers[each.key].bfd == null ? [] : [var.peers[each.key].bfd]
+    for_each = var.peers[each.key].bfd == null ? [] : [
+      var.peers[each.key].bfd,
+    ]
     iterator = item_bfd
     content {
       min_receive_interval        = item_bfd.value.min_receive_interval
@@ -51,7 +53,9 @@ resource "google_compute_router_peer" "this" {
     }
   }
   dynamic "md5_authentication_key" {
-    for_each = var.peers[each.key].md5_authentication_key == null ? [] : [var.peers[each.key].md5_authentication_key]
+    for_each = var.peers[each.key].md5_authentication_key == null ? [] : [
+      var.peers[each.key].md5_authentication_key,
+    ]
     iterator = item_md5_authentication_key
     content {
       key  = sensitive(item_md5_authentication_key.value.key)
@@ -59,7 +63,9 @@ resource "google_compute_router_peer" "this" {
     }
   }
   dynamic "timeouts" {
-    for_each = var.peers[each.key].timeouts == null ? [] : [var.peers[each.key].timeouts]
+    for_each = var.peers[each.key].timeouts == null ? [] : [
+      var.peers[each.key].timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

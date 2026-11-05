@@ -32,7 +32,10 @@ variable "network" {
     error_message = "network.name must be a valid GCP resource name (1-63 lowercase letters/digits/hyphens)."
   }
   validation {
-    condition     = var.network.routing_mode == null ? true : contains(["REGIONAL", "GLOBAL"], var.network.routing_mode)
+    condition = var.network.routing_mode == null ? true : contains([
+      "REGIONAL",
+      "GLOBAL",
+    ], var.network.routing_mode)
     error_message = "routing_mode must be REGIONAL or GLOBAL."
   }
 }

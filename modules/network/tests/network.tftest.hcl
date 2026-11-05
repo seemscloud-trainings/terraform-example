@@ -23,5 +23,7 @@ run "invalid_name" {
       name = "INVALID_NAME"
     }
   }
-  expect_failures = [var.network]
+  expect_failures = [
+    var.network,
+  ]
 }

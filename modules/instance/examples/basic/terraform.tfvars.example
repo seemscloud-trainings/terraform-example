@@ -22,9 +22,11 @@ instance = {
     }
   }
   network_interface = [
+
     {
       subnetwork = "projects/example-project/regions/europe-west1/subnetworks/atlas"
     }
+    ,
   ]
   metadata = {
     enable-oslogin = "TRUE"

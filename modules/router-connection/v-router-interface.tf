@@ -20,7 +20,9 @@ variable "interfaces" {
   nullable    = false
   description = "router_interface configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
   validation {
-    condition     = alltrue([for v in values(var.interfaces) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))])
+    condition = alltrue([
+      for v in values(var.interfaces) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))
+    ])
     error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
   }
 }

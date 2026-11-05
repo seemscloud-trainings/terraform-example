@@ -7,8 +7,10 @@ variables {
     location = "global"
     hub      = "projects/test-project/locations/global/hubs/nexus"
     linked_vpc_network = {
-      uri                   = "projects/test-project/global/networks/lyra"
-      include_export_ranges = ["10.92.0.0/24"]
+      uri = "projects/test-project/global/networks/lyra"
+      include_export_ranges = [
+        "10.92.0.0/24",
+      ]
     }
   }
 }
@@ -16,7 +18,9 @@ variables {
 run "only_selected_subnet" {
   command = plan
   assert {
-    condition     = google_network_connectivity_spoke.this.linked_vpc_network[0].include_export_ranges == tolist(["10.92.0.0/24"])
+    condition = google_network_connectivity_spoke.this.linked_vpc_network[0].include_export_ranges == tolist([
+      "10.92.0.0/24",
+    ])
     error_message = "Only the explicitly selected subnet range may be exported."
   }
 }
@@ -33,7 +37,9 @@ run "vpc_is_global" {
       }
     }
   }
-  expect_failures = [var.spoke]
+  expect_failures = [
+    var.spoke,
+  ]
 }
 
 run "reject_two_attachment_types" {
@@ -47,10 +53,14 @@ run "reject_two_attachment_types" {
         uri = "projects/test-project/global/networks/lyra"
       }
       linked_vpn_tunnels = {
-        uris                       = ["existing-tunnel"]
+        uris = [
+          "existing-tunnel",
+        ]
         site_to_site_data_transfer = false
       }
     }
   }
-  expect_failures = [var.spoke]
+  expect_failures = [
+    var.spoke,
+  ]
 }

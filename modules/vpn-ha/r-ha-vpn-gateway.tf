@@ -9,14 +9,18 @@ resource "google_compute_ha_vpn_gateway" "this" {
   region             = var.gateway.region != null ? var.gateway.region : var.region
   stack_type         = var.gateway.stack_type
   dynamic "params" {
-    for_each = var.gateway.params == null ? [] : [var.gateway.params]
+    for_each = var.gateway.params == null ? [] : [
+      var.gateway.params,
+    ]
     iterator = item_params
     content {
       resource_manager_tags = item_params.value.resource_manager_tags
     }
   }
   dynamic "timeouts" {
-    for_each = var.gateway.timeouts == null ? [] : [var.gateway.timeouts]
+    for_each = var.gateway.timeouts == null ? [] : [
+      var.gateway.timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

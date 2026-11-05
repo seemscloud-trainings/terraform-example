@@ -8,7 +8,9 @@ resource "google_network_connectivity_hub" "this" {
   preset_topology = var.hub.preset_topology
   project         = var.hub.project != null ? var.hub.project : var.project
   dynamic "timeouts" {
-    for_each = var.hub.timeouts == null ? [] : [var.hub.timeouts]
+    for_each = var.hub.timeouts == null ? [] : [
+      var.hub.timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

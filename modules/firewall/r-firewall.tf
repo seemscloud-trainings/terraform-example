@@ -29,19 +29,25 @@ resource "google_compute_firewall" "this" {
     }
   }
   dynamic "log_config" {
-    for_each = var.firewall.log_config == null ? [] : [var.firewall.log_config]
+    for_each = var.firewall.log_config == null ? [] : [
+      var.firewall.log_config,
+    ]
     content {
       metadata = log_config.value.metadata
     }
   }
   dynamic "params" {
-    for_each = var.firewall.params == null ? [] : [var.firewall.params]
+    for_each = var.firewall.params == null ? [] : [
+      var.firewall.params,
+    ]
     content {
       resource_manager_tags = params.value.resource_manager_tags
     }
   }
   dynamic "timeouts" {
-    for_each = var.firewall.timeouts == null ? [] : [var.firewall.timeouts]
+    for_each = var.firewall.timeouts == null ? [] : [
+      var.firewall.timeouts,
+    ]
     content {
       create = timeouts.value.create
       delete = timeouts.value.delete

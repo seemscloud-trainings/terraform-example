@@ -13,7 +13,9 @@ resource "google_compute_router_interface" "this" {
   subnetwork              = var.interfaces[each.key].subnetwork
   vpn_tunnel              = var.interfaces[each.key].vpn_tunnel
   dynamic "timeouts" {
-    for_each = var.interfaces[each.key].timeouts == null ? [] : [var.interfaces[each.key].timeouts]
+    for_each = var.interfaces[each.key].timeouts == null ? [] : [
+      var.interfaces[each.key].timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

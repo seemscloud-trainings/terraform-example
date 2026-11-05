@@ -105,7 +105,10 @@ variable "network" {
     error_message = "network.name must be a valid GCP resource name (1-63 lowercase letters/digits/hyphens)."
   }
   validation {
-    condition     = var.network.routing_mode == null ? true : contains(["REGIONAL", "GLOBAL"], var.network.routing_mode)
+    condition = var.network.routing_mode == null ? true : contains([
+      "REGIONAL",
+      "GLOBAL",
+    ], var.network.routing_mode)
     error_message = "routing_mode must be REGIONAL or GLOBAL."
   }
 }
@@ -157,11 +160,15 @@ variable "subnetworks" {
   nullable    = false
   description = "Subnets keyed by stable logical identifiers. Each entry has an explicit GCP name. Empty map creates no subnets."
   validation {
-    condition     = alltrue([for subnet in values(var.subnetworks) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", subnet.name))])
+    condition = alltrue([
+      for subnet in values(var.subnetworks) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", subnet.name))
+    ])
     error_message = "Every subnet requires a valid GCP resource name."
   }
   validation {
-    condition     = alltrue([for subnet in values(var.subnetworks) : subnet.ip_cidr_range == null ? true : can(cidrnetmask(subnet.ip_cidr_range))])
+    condition = alltrue([
+      for subnet in values(var.subnetworks) : subnet.ip_cidr_range == null ? true : can(cidrnetmask(subnet.ip_cidr_range))
+    ])
     error_message = "Provided subnet ip_cidr_range values must be valid IPv4 CIDRs."
   }
 }

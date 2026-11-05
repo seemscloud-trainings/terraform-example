@@ -40,7 +40,9 @@ run "invalid_name" {
       network = "projects/test-project/global/networks/atlas"
     }
   }
-  expect_failures = [var.gateway]
+  expect_failures = [
+    var.gateway,
+  ]
 }
 
 run "interconnect_and_labels" {

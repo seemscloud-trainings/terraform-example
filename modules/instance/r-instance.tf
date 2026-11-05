@@ -19,7 +19,9 @@ resource "google_compute_instance" "this" {
   tags                       = var.instance.tags
   zone                       = var.instance.zone != null ? var.instance.zone : var.zone
   dynamic "advanced_machine_features" {
-    for_each = var.instance.advanced_machine_features == null ? [] : [var.instance.advanced_machine_features]
+    for_each = var.instance.advanced_machine_features == null ? [] : [
+      var.instance.advanced_machine_features,
+    ]
     iterator = item_advanced_machine_features
     content {
       enable_nested_virtualization = item_advanced_machine_features.value.enable_nested_virtualization
@@ -45,7 +47,9 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "boot_disk" {
-    for_each = var.instance.boot_disk == null ? [] : [var.instance.boot_disk]
+    for_each = var.instance.boot_disk == null ? [] : [
+      var.instance.boot_disk,
+    ]
     iterator = item_boot_disk
     content {
       auto_delete                     = item_boot_disk.value.auto_delete
@@ -60,7 +64,9 @@ resource "google_compute_instance" "this" {
       mode                            = item_boot_disk.value.mode
       source                          = item_boot_disk.value.source
       dynamic "initialize_params" {
-        for_each = item_boot_disk.value.initialize_params == null ? [] : [item_boot_disk.value.initialize_params]
+        for_each = item_boot_disk.value.initialize_params == null ? [] : [
+          item_boot_disk.value.initialize_params,
+        ]
         iterator = item_boot_disk_initialize_params
         content {
           architecture                = item_boot_disk_initialize_params.value.architecture
@@ -77,7 +83,9 @@ resource "google_compute_instance" "this" {
           storage_pool                = item_boot_disk_initialize_params.value.storage_pool
           type                        = item_boot_disk_initialize_params.value.type
           dynamic "source_image_encryption_key" {
-            for_each = item_boot_disk_initialize_params.value.source_image_encryption_key == null ? [] : [item_boot_disk_initialize_params.value.source_image_encryption_key]
+            for_each = item_boot_disk_initialize_params.value.source_image_encryption_key == null ? [] : [
+              item_boot_disk_initialize_params.value.source_image_encryption_key,
+            ]
             iterator = item_boot_disk_initialize_params_source_image_encryption_key
             content {
               kms_key_self_link       = item_boot_disk_initialize_params_source_image_encryption_key.value.kms_key_self_link
@@ -87,7 +95,9 @@ resource "google_compute_instance" "this" {
             }
           }
           dynamic "source_snapshot_encryption_key" {
-            for_each = item_boot_disk_initialize_params.value.source_snapshot_encryption_key == null ? [] : [item_boot_disk_initialize_params.value.source_snapshot_encryption_key]
+            for_each = item_boot_disk_initialize_params.value.source_snapshot_encryption_key == null ? [] : [
+              item_boot_disk_initialize_params.value.source_snapshot_encryption_key,
+            ]
             iterator = item_boot_disk_initialize_params_source_snapshot_encryption_key
             content {
               kms_key_self_link       = item_boot_disk_initialize_params_source_snapshot_encryption_key.value.kms_key_self_link
@@ -101,7 +111,9 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "confidential_instance_config" {
-    for_each = var.instance.confidential_instance_config == null ? [] : [var.instance.confidential_instance_config]
+    for_each = var.instance.confidential_instance_config == null ? [] : [
+      var.instance.confidential_instance_config,
+    ]
     iterator = item_confidential_instance_config
     content {
       confidential_instance_type  = item_confidential_instance_config.value.confidential_instance_type
@@ -117,7 +129,9 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "instance_encryption_key" {
-    for_each = var.instance.instance_encryption_key == null ? [] : [var.instance.instance_encryption_key]
+    for_each = var.instance.instance_encryption_key == null ? [] : [
+      var.instance.instance_encryption_key,
+    ]
     iterator = item_instance_encryption_key
     content {
       kms_key_self_link       = item_instance_encryption_key.value.kms_key_self_link
@@ -173,26 +187,34 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "network_performance_config" {
-    for_each = var.instance.network_performance_config == null ? [] : [var.instance.network_performance_config]
+    for_each = var.instance.network_performance_config == null ? [] : [
+      var.instance.network_performance_config,
+    ]
     iterator = item_network_performance_config
     content {
       total_egress_bandwidth_tier = item_network_performance_config.value.total_egress_bandwidth_tier
     }
   }
   dynamic "params" {
-    for_each = var.instance.params == null ? [] : [var.instance.params]
+    for_each = var.instance.params == null ? [] : [
+      var.instance.params,
+    ]
     iterator = item_params
     content {
       resource_manager_tags = item_params.value.resource_manager_tags
     }
   }
   dynamic "reservation_affinity" {
-    for_each = var.instance.reservation_affinity == null ? [] : [var.instance.reservation_affinity]
+    for_each = var.instance.reservation_affinity == null ? [] : [
+      var.instance.reservation_affinity,
+    ]
     iterator = item_reservation_affinity
     content {
       type = item_reservation_affinity.value.type
       dynamic "specific_reservation" {
-        for_each = item_reservation_affinity.value.specific_reservation == null ? [] : [item_reservation_affinity.value.specific_reservation]
+        for_each = item_reservation_affinity.value.specific_reservation == null ? [] : [
+          item_reservation_affinity.value.specific_reservation,
+        ]
         iterator = item_reservation_affinity_specific_reservation
         content {
           key    = item_reservation_affinity_specific_reservation.value.key
@@ -202,7 +224,9 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "scheduling" {
-    for_each = var.instance.scheduling == null ? [] : [var.instance.scheduling]
+    for_each = var.instance.scheduling == null ? [] : [
+      var.instance.scheduling,
+    ]
     iterator = item_scheduling
     content {
       automatic_restart           = item_scheduling.value.automatic_restart
@@ -215,7 +239,9 @@ resource "google_compute_instance" "this" {
       provisioning_model          = item_scheduling.value.provisioning_model
       termination_time            = item_scheduling.value.termination_time
       dynamic "local_ssd_recovery_timeout" {
-        for_each = item_scheduling.value.local_ssd_recovery_timeout == null ? [] : [item_scheduling.value.local_ssd_recovery_timeout]
+        for_each = item_scheduling.value.local_ssd_recovery_timeout == null ? [] : [
+          item_scheduling.value.local_ssd_recovery_timeout,
+        ]
         iterator = item_scheduling_local_ssd_recovery_timeout
         content {
           nanos   = item_scheduling_local_ssd_recovery_timeout.value.nanos
@@ -223,7 +249,9 @@ resource "google_compute_instance" "this" {
         }
       }
       dynamic "max_run_duration" {
-        for_each = item_scheduling.value.max_run_duration == null ? [] : [item_scheduling.value.max_run_duration]
+        for_each = item_scheduling.value.max_run_duration == null ? [] : [
+          item_scheduling.value.max_run_duration,
+        ]
         iterator = item_scheduling_max_run_duration
         content {
           nanos   = item_scheduling_max_run_duration.value.nanos
@@ -240,14 +268,18 @@ resource "google_compute_instance" "this" {
         }
       }
       dynamic "on_instance_stop_action" {
-        for_each = item_scheduling.value.on_instance_stop_action == null ? [] : [item_scheduling.value.on_instance_stop_action]
+        for_each = item_scheduling.value.on_instance_stop_action == null ? [] : [
+          item_scheduling.value.on_instance_stop_action,
+        ]
         iterator = item_scheduling_on_instance_stop_action
         content {
           discard_local_ssd = item_scheduling_on_instance_stop_action.value.discard_local_ssd
         }
       }
       dynamic "preemption_notice_duration" {
-        for_each = item_scheduling.value.preemption_notice_duration == null ? [] : [item_scheduling.value.preemption_notice_duration]
+        for_each = item_scheduling.value.preemption_notice_duration == null ? [] : [
+          item_scheduling.value.preemption_notice_duration,
+        ]
         iterator = item_scheduling_preemption_notice_duration
         content {
           nanos   = item_scheduling_preemption_notice_duration.value.nanos
@@ -266,7 +298,9 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "service_account" {
-    for_each = var.instance.service_account == null ? [] : [var.instance.service_account]
+    for_each = var.instance.service_account == null ? [] : [
+      var.instance.service_account,
+    ]
     iterator = item_service_account
     content {
       email  = item_service_account.value.email
@@ -274,7 +308,9 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "shielded_instance_config" {
-    for_each = var.instance.shielded_instance_config == null ? [] : [var.instance.shielded_instance_config]
+    for_each = var.instance.shielded_instance_config == null ? [] : [
+      var.instance.shielded_instance_config,
+    ]
     iterator = item_shielded_instance_config
     content {
       enable_integrity_monitoring = item_shielded_instance_config.value.enable_integrity_monitoring
@@ -283,7 +319,9 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "timeouts" {
-    for_each = var.instance.timeouts == null ? [] : [var.instance.timeouts]
+    for_each = var.instance.timeouts == null ? [] : [
+      var.instance.timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create
@@ -292,7 +330,9 @@ resource "google_compute_instance" "this" {
     }
   }
   dynamic "workload_identity_config" {
-    for_each = var.instance.workload_identity_config == null ? [] : [var.instance.workload_identity_config]
+    for_each = var.instance.workload_identity_config == null ? [] : [
+      var.instance.workload_identity_config,
+    ]
     iterator = item_workload_identity_config
     content {
       identity                     = item_workload_identity_config.value.identity

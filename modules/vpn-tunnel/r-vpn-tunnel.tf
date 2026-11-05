@@ -21,11 +21,15 @@ resource "google_compute_vpn_tunnel" "this" {
   vpn_gateway                     = var.tunnels[each.key].vpn_gateway
   vpn_gateway_interface           = var.tunnels[each.key].vpn_gateway_interface
   dynamic "cipher_suite" {
-    for_each = var.tunnels[each.key].cipher_suite == null ? [] : [var.tunnels[each.key].cipher_suite]
+    for_each = var.tunnels[each.key].cipher_suite == null ? [] : [
+      var.tunnels[each.key].cipher_suite,
+    ]
     iterator = item_cipher_suite
     content {
       dynamic "phase1" {
-        for_each = item_cipher_suite.value.phase1 == null ? [] : [item_cipher_suite.value.phase1]
+        for_each = item_cipher_suite.value.phase1 == null ? [] : [
+          item_cipher_suite.value.phase1,
+        ]
         iterator = item_phase1
         content {
           dh         = item_phase1.value.dh
@@ -35,7 +39,9 @@ resource "google_compute_vpn_tunnel" "this" {
         }
       }
       dynamic "phase2" {
-        for_each = item_cipher_suite.value.phase2 == null ? [] : [item_cipher_suite.value.phase2]
+        for_each = item_cipher_suite.value.phase2 == null ? [] : [
+          item_cipher_suite.value.phase2,
+        ]
         iterator = item_phase2
         content {
           encryption = item_phase2.value.encryption
@@ -46,14 +52,18 @@ resource "google_compute_vpn_tunnel" "this" {
     }
   }
   dynamic "params" {
-    for_each = var.tunnels[each.key].params == null ? [] : [var.tunnels[each.key].params]
+    for_each = var.tunnels[each.key].params == null ? [] : [
+      var.tunnels[each.key].params,
+    ]
     iterator = item_params
     content {
       resource_manager_tags = item_params.value.resource_manager_tags
     }
   }
   dynamic "timeouts" {
-    for_each = var.tunnels[each.key].timeouts == null ? [] : [var.tunnels[each.key].timeouts]
+    for_each = var.tunnels[each.key].timeouts == null ? [] : [
+      var.tunnels[each.key].timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

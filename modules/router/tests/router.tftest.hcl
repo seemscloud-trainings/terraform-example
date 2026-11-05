@@ -40,7 +40,9 @@ run "invalid_name" {
       network = "projects/test-project/global/networks/atlas"
     }
   }
-  expect_failures = [var.router]
+  expect_failures = [
+    var.router,
+  ]
 }
 
 run "bgp_and_context" {

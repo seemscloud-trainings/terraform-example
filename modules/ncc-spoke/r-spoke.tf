@@ -8,7 +8,9 @@ resource "google_network_connectivity_spoke" "this" {
   name            = local.naming.spoke
   project         = var.spoke.project != null ? var.spoke.project : var.project
   dynamic "gateway" {
-    for_each = var.spoke.gateway == null ? [] : [var.spoke.gateway]
+    for_each = var.spoke.gateway == null ? [] : [
+      var.spoke.gateway,
+    ]
     iterator = item_gateway
     content {
       capacity = item_gateway.value.capacity
@@ -22,7 +24,9 @@ resource "google_network_connectivity_spoke" "this" {
     }
   }
   dynamic "linked_interconnect_attachments" {
-    for_each = var.spoke.linked_interconnect_attachments == null ? [] : [var.spoke.linked_interconnect_attachments]
+    for_each = var.spoke.linked_interconnect_attachments == null ? [] : [
+      var.spoke.linked_interconnect_attachments,
+    ]
     iterator = item_linked_interconnect_attachments
     content {
       exclude_export_ranges      = item_linked_interconnect_attachments.value.exclude_export_ranges
@@ -34,7 +38,9 @@ resource "google_network_connectivity_spoke" "this" {
     }
   }
   dynamic "linked_producer_vpc_network" {
-    for_each = var.spoke.linked_producer_vpc_network == null ? [] : [var.spoke.linked_producer_vpc_network]
+    for_each = var.spoke.linked_producer_vpc_network == null ? [] : [
+      var.spoke.linked_producer_vpc_network,
+    ]
     iterator = item_linked_producer_vpc_network
     content {
       exclude_export_ranges = item_linked_producer_vpc_network.value.exclude_export_ranges
@@ -44,7 +50,9 @@ resource "google_network_connectivity_spoke" "this" {
     }
   }
   dynamic "linked_router_appliance_instances" {
-    for_each = var.spoke.linked_router_appliance_instances == null ? [] : [var.spoke.linked_router_appliance_instances]
+    for_each = var.spoke.linked_router_appliance_instances == null ? [] : [
+      var.spoke.linked_router_appliance_instances,
+    ]
     iterator = item_linked_router_appliance_instances
     content {
       exclude_export_ranges      = item_linked_router_appliance_instances.value.exclude_export_ranges
@@ -63,7 +71,9 @@ resource "google_network_connectivity_spoke" "this" {
     }
   }
   dynamic "linked_vpc_network" {
-    for_each = var.spoke.linked_vpc_network == null ? [] : [var.spoke.linked_vpc_network]
+    for_each = var.spoke.linked_vpc_network == null ? [] : [
+      var.spoke.linked_vpc_network,
+    ]
     iterator = item_linked_vpc_network
     content {
       exclude_export_ranges = item_linked_vpc_network.value.exclude_export_ranges
@@ -72,7 +82,9 @@ resource "google_network_connectivity_spoke" "this" {
     }
   }
   dynamic "linked_vpn_tunnels" {
-    for_each = var.spoke.linked_vpn_tunnels == null ? [] : [var.spoke.linked_vpn_tunnels]
+    for_each = var.spoke.linked_vpn_tunnels == null ? [] : [
+      var.spoke.linked_vpn_tunnels,
+    ]
     iterator = item_linked_vpn_tunnels
     content {
       exclude_export_ranges      = item_linked_vpn_tunnels.value.exclude_export_ranges
@@ -84,7 +96,9 @@ resource "google_network_connectivity_spoke" "this" {
     }
   }
   dynamic "timeouts" {
-    for_each = var.spoke.timeouts == null ? [] : [var.spoke.timeouts]
+    for_each = var.spoke.timeouts == null ? [] : [
+      var.spoke.timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

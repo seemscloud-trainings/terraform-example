@@ -25,7 +25,9 @@ inputs = {
   instance = {
     name         = "birch"
     machine_type = "e2-micro"
-    tags         = ["ssh"]
+    tags = [
+      "ssh",
+    ]
     boot_disk = {
       initialize_params = {
         image  = "projects/ubuntu-os-cloud/global/images/ubuntu-minimal-2604-resolute-amd64-v20261104a"
@@ -35,6 +37,7 @@ inputs = {
       }
     }
     network_interface = [
+
       {
         subnetwork = dependency.subnetwork.outputs.subnetworks.workload.self_link
         access_config = {
@@ -43,6 +46,7 @@ inputs = {
           }
         }
       }
+      ,
     ]
     metadata = {
       enable-oslogin         = "FALSE"

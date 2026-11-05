@@ -17,16 +17,22 @@ inputs = {
   environment = local.environment.inputs.environment
   project     = local.project.inputs.project
   firewall = {
-    name          = "amber"
-    network       = dependency.network.outputs.network.self_link
-    direction     = "INGRESS"
-    priority      = 1000
-    source_ranges = ["0.0.0.0/0"]
-    target_tags   = ["ssh"]
+    name      = "amber"
+    network   = dependency.network.outputs.network.self_link
+    direction = "INGRESS"
+    priority  = 1000
+    source_ranges = [
+      "0.0.0.0/0",
+    ]
+    target_tags = [
+      "ssh",
+    ]
     allow = {
       ssh = {
         protocol = "tcp"
-        ports    = ["22"]
+        ports = [
+          "22",
+        ]
       }
     }
   }

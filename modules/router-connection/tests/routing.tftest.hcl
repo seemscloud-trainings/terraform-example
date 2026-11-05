@@ -40,5 +40,7 @@ run "bad_interface" {
       }
     }
   }
-  expect_failures = [var.peers]
+  expect_failures = [
+    var.peers,
+  ]
 }

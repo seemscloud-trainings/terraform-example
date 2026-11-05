@@ -13,9 +13,11 @@ variables {
       }
     }
     network_interface = [
+
       {
         subnetwork = "projects/test-project/regions/europe-west1/subnetworks/atlas"
       }
+      ,
     ]
   }
 }
@@ -49,6 +51,7 @@ run "public_and_optional_features" {
         }
       }
       network_interface = [
+
         {
           subnetwork = "projects/test-project/regions/us-east1/subnetworks/orion"
           access_config = {
@@ -57,6 +60,7 @@ run "public_and_optional_features" {
             }
           }
         }
+        ,
       ]
       scheduling = {
         provisioning_model  = "SPOT"
@@ -68,8 +72,10 @@ run "public_and_optional_features" {
         enable_vtpm        = true
       }
       service_account = {
-        email  = "example@test-project.iam.gserviceaccount.com"
-        scopes = ["cloud-platform"]
+        email = "example@test-project.iam.gserviceaccount.com"
+        scopes = [
+          "cloud-platform",
+        ]
       }
     }
   }
@@ -91,7 +97,9 @@ run "missing_nic" {
       network_interface = []
     }
   }
-  expect_failures = [var.instance]
+  expect_failures = [
+    var.instance,
+  ]
 }
 
 run "conflicting_boot_disk" {
@@ -107,11 +115,15 @@ run "conflicting_boot_disk" {
         }
       }
       network_interface = [
+
         {
           subnetwork = "existing-subnet"
         }
+        ,
       ]
     }
   }
-  expect_failures = [var.instance]
+  expect_failures = [
+    var.instance,
+  ]
 }

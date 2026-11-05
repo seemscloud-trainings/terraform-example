@@ -10,13 +10,17 @@ output "instance" {
     machine_type   = google_compute_instance.this.machine_type
     current_status = google_compute_instance.this.current_status
     network_interfaces = [
+
       for nic in google_compute_instance.this.network_interface : {
         name       = nic.name
         network    = nic.network
         subnetwork = nic.subnetwork
         network_ip = nic.network_ip
-        public_ips = [for access in nic.access_config : access.nat_ip]
+        public_ips = [
+          for access in nic.access_config : access.nat_ip
+        ]
       }
+
     ]
   }
 }

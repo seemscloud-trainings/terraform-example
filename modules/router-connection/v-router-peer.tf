@@ -52,15 +52,21 @@ variable "peers" {
   nullable    = false
   description = "router_peer configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
   validation {
-    condition     = alltrue([for v in values(var.peers) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))])
+    condition = alltrue([
+      for v in values(var.peers) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))
+    ])
     error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
   }
   validation {
-    condition     = alltrue([for v in values(var.peers) : (v.interface != null) != (v.interface_key != null)])
+    condition = alltrue([
+      for v in values(var.peers) : (v.interface != null) != (v.interface_key != null)
+    ])
     error_message = "Supply exactly one of interface or interface_key."
   }
   validation {
-    condition     = alltrue([for v in values(var.peers) : v.interface_key == null ? true : contains(keys(var.interfaces), v.interface_key)])
+    condition = alltrue([
+      for v in values(var.peers) : v.interface_key == null ? true : contains(keys(var.interfaces), v.interface_key)
+    ])
     error_message = "interface_key must identify an interface created by this module invocation."
   }
 }

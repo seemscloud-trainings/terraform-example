@@ -21,7 +21,9 @@ resource "google_compute_subnetwork" "this" {
   send_secondary_ip_range_if_empty = each.value.send_secondary_ip_range_if_empty
   stack_type                       = each.value.stack_type
   dynamic "log_config" {
-    for_each = each.value.log_config == null ? [] : [each.value.log_config]
+    for_each = each.value.log_config == null ? [] : [
+      each.value.log_config,
+    ]
     iterator = item_log_config
     content {
       aggregation_interval = item_log_config.value.aggregation_interval
@@ -32,7 +34,9 @@ resource "google_compute_subnetwork" "this" {
     }
   }
   dynamic "params" {
-    for_each = each.value.params == null ? [] : [each.value.params]
+    for_each = each.value.params == null ? [] : [
+      each.value.params,
+    ]
     iterator = item_params
     content {
       resource_manager_tags = item_params.value.resource_manager_tags
@@ -48,7 +52,9 @@ resource "google_compute_subnetwork" "this" {
     }
   }
   dynamic "timeouts" {
-    for_each = each.value.timeouts == null ? [] : [each.value.timeouts]
+    for_each = each.value.timeouts == null ? [] : [
+      each.value.timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

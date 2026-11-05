@@ -16,14 +16,18 @@ resource "google_compute_network" "this" {
   project                                   = local.network_project
   routing_mode                              = var.network.routing_mode
   dynamic "params" {
-    for_each = var.network.params == null ? [] : [var.network.params]
+    for_each = var.network.params == null ? [] : [
+      var.network.params,
+    ]
     iterator = item_params
     content {
       resource_manager_tags = item_params.value.resource_manager_tags
     }
   }
   dynamic "timeouts" {
-    for_each = var.network.timeouts == null ? [] : [var.network.timeouts]
+    for_each = var.network.timeouts == null ? [] : [
+      var.network.timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

@@ -172,6 +172,24 @@ Nie konstruuj URL-i zamiast referencji do zarządzanych zasobów.
 
 ## Format i sekrety
 
+Każda niepusta lista/tupla jest wieloliniowa, nawet z jednym elementem:
+klamra kwadratowa otwierająca po przypisaniu, każdy element w osobnej linii
+z przecinkiem na końcu i zamykające ] w osobnej linii. Dotyczy inputs, resource,
+locals, typów wartości w przykładach, testów, warunków i list przekazywanych funkcjom.
+Puste [] mogą pozostać zwarte. Wyrażenia list comprehension także rozbijaj na
+linie, bez niepoprawnego przecinka po wyrażeniu for. Nie rozbijaj indeksowania
+(np. subnetworks["workload"] lub bgp[0]) ani tekstu literałów/stringów.
+Ta reguła nie zmienia typu kolekcji ani kolejności elementów. Przykład:
+
+```hcl
+include_export_ranges = [
+  dependency.subnetwork.outputs.subnetworks.workload.ip_cidr_range,
+]
+```
+Sam terraform fmt / terragrunt hcl fmt nie rozwija wszystkich list: po formatowaniu
+sprawdź tę regułę osobno. Zachowaj identyczne wartości i wyrażenia.
+
+
 Cała konfiguracja jest natywnym HCL (`=`), nie JSON-em ani `.tf.json`.
 Dwie spacje wcięcia. Puste linie oddzielają elementy najwyższego poziomu.
 Każdy niepusty obiekt/mapę rozwijaj na wiele linii, także w for, testach i przykładach.

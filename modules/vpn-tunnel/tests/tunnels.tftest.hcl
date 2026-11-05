@@ -114,7 +114,9 @@ run "missing_psk" {
       }
     }
   }
-  expect_failures = [var.tunnels]
+  expect_failures = [
+    var.tunnels,
+  ]
 }
 
 run "invalid_ha_interface" {
@@ -133,7 +135,9 @@ run "invalid_ha_interface" {
       }
     }
   }
-  expect_failures = [var.tunnels]
+  expect_failures = [
+    var.tunnels,
+  ]
 }
 
 run "missing_write_only_psk" {
@@ -151,6 +155,8 @@ run "missing_write_only_psk" {
       }
     }
   }
-  expect_failures = [var.write_only_shared_secrets]
+  expect_failures = [
+    var.write_only_shared_secrets,
+  ]
 }
 

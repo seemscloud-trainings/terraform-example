@@ -8,7 +8,9 @@ resource "google_compute_router" "this" {
   project                       = var.router.project != null ? var.router.project : var.project
   region                        = var.router.region != null ? var.router.region : var.region
   dynamic "bgp" {
-    for_each = var.router.bgp == null ? [] : [var.router.bgp]
+    for_each = var.router.bgp == null ? [] : [
+      var.router.bgp,
+    ]
     iterator = item_bgp
     content {
       advertise_mode     = item_bgp.value.advertise_mode
@@ -27,7 +29,9 @@ resource "google_compute_router" "this" {
     }
   }
   dynamic "md5_authentication_keys" {
-    for_each = var.router.md5_authentication_keys == null ? [] : [var.router.md5_authentication_keys]
+    for_each = var.router.md5_authentication_keys == null ? [] : [
+      var.router.md5_authentication_keys,
+    ]
     iterator = item_md5_authentication_keys
     content {
       key  = sensitive(item_md5_authentication_keys.value.key)
@@ -35,14 +39,18 @@ resource "google_compute_router" "this" {
     }
   }
   dynamic "params" {
-    for_each = var.router.params == null ? [] : [var.router.params]
+    for_each = var.router.params == null ? [] : [
+      var.router.params,
+    ]
     iterator = item_params
     content {
       resource_manager_tags = item_params.value.resource_manager_tags
     }
   }
   dynamic "timeouts" {
-    for_each = var.router.timeouts == null ? [] : [var.router.timeouts]
+    for_each = var.router.timeouts == null ? [] : [
+      var.router.timeouts,
+    ]
     iterator = item_timeouts
     content {
       create = item_timeouts.value.create

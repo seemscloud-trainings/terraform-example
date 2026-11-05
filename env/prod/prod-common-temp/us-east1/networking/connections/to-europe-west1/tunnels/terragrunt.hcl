@@ -14,8 +14,10 @@ locals {
 terraform {
   source = "${get_repo_root()}//modules/vpn-tunnel"
   extra_arguments "vpn_secrets" {
-    commands           = get_terraform_commands_that_need_vars()
-    required_var_files = [get_env("VPN_SECRETS_FILE", "${get_repo_root()}/${local.connection.secrets_file}")]
+    commands = get_terraform_commands_that_need_vars()
+    required_var_files = [
+      get_env("VPN_SECRETS_FILE", "${get_repo_root()}/${local.connection.secrets_file}"),
+    ]
   }
 }
 

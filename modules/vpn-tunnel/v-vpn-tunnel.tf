@@ -44,49 +44,81 @@ variable "tunnels" {
   nullable    = false
   description = "vpn_tunnel configurations keyed by stable logical identifiers; every name is supplied unchanged by the caller."
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))])
+    condition = alltrue([
+      for v in values(var.tunnels) : can(regex("^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$", v.name))
+    ])
     error_message = "Names must be valid GCP resource names (1-63 lowercase letters/digits/hyphens)."
   }
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : v.vpn_gateway_interface == null ? false : contains([0, 1], v.vpn_gateway_interface)])
+    condition = alltrue([
+      for v in values(var.tunnels) : v.vpn_gateway_interface == null ? false : contains([
+        0,
+        1,
+      ], v.vpn_gateway_interface)
+    ])
     error_message = "Specify HA gateway interface 0 or 1 for every tunnel."
   }
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : v.router != null])
+    condition = alltrue([
+      for v in values(var.tunnels) : v.router != null
+    ])
     error_message = "HA VPN requires an existing Cloud Router; supply its name or self-link."
   }
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : contains([1, 2], v.ike_version)])
+    condition = alltrue([
+      for v in values(var.tunnels) : contains([
+        1,
+        2,
+      ], v.ike_version)
+    ])
     error_message = "ike_version must be 1 or 2."
   }
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : contains(["standard", "write_only"], v.secret_mode)])
+    condition = alltrue([
+      for v in values(var.tunnels) : contains([
+        "standard",
+        "write_only",
+      ], v.secret_mode)
+    ])
     error_message = "secret_mode must be standard or write_only."
   }
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : v.secret_mode != "write_only" || v.shared_secret_wo_version != null])
+    condition = alltrue([
+      for v in values(var.tunnels) : v.secret_mode != "write_only" || v.shared_secret_wo_version != null
+    ])
     error_message = "Write-only secrets require shared_secret_wo_version; increment it to rotate the PSK."
   }
   validation {
-    condition     = alltrue([for k, v in var.tunnels : v.secret_mode != "standard" || contains(keys(var.shared_secrets), v.secret_key != null ? v.secret_key : k)])
+    condition = alltrue([
+      for k,
+      v in var.tunnels : v.secret_mode != "standard" || contains(keys(var.shared_secrets), v.secret_key != null ? v.secret_key : k)
+    ])
     error_message = "Every standard-mode tunnel needs a shared_secrets entry, selected by secret_key or its map key."
   }
   validation {
-    condition = alltrue([for v in values(var.tunnels) :
+    condition = alltrue([
+      for v in values(var.tunnels) :
       (v.peer_external_gateway != null) == (v.peer_external_gateway_interface != null)
+
     ])
     error_message = "peer_external_gateway_interface is required only for an external peer gateway."
   }
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : v.vpn_gateway != null])
+    condition = alltrue([
+      for v in values(var.tunnels) : v.vpn_gateway != null
+    ])
     error_message = "Every tunnel requires an existing HA gateway."
   }
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : (v.peer_gcp_gateway != null) != (v.peer_external_gateway != null)])
+    condition = alltrue([
+      for v in values(var.tunnels) : (v.peer_gcp_gateway != null) != (v.peer_external_gateway != null)
+    ])
     error_message = "Supply exactly one peer_gcp_gateway or peer_external_gateway."
   }
   validation {
-    condition     = alltrue([for v in values(var.tunnels) : v.peer_gcp_gateway == null ? true : v.peer_gcp_gateway != v.vpn_gateway])
+    condition = alltrue([
+      for v in values(var.tunnels) : v.peer_gcp_gateway == null ? true : v.peer_gcp_gateway != v.vpn_gateway
+    ])
     error_message = "A tunnel cannot connect a gateway to itself."
   }
 }

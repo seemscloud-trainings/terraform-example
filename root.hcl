@@ -1,5 +1,7 @@
 locals {
-  state_path = join("/", [for segment in split("/", path_relative_to_include()) : segment if segment != "networking"])
+  state_path = join("/", [
+    for segment in split("/", path_relative_to_include()) : segment if segment != "networking"
+  ])
 
   # Preserve existing VPC and EU-US state locations; new units use their own path.
   legacy_state_paths = {

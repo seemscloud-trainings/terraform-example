@@ -53,5 +53,7 @@ run "invalid_cidr" {
       }
     }
   }
-  expect_failures = [var.subnetworks]
+  expect_failures = [
+    var.subnetworks,
+  ]
 }
